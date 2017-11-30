@@ -1,4 +1,4 @@
-require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') require('dotenv').config();
 const fetch = require('node-fetch');
 const { sections } = require('./page-structure');
 const structure = require('./page-structure');
