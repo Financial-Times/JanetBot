@@ -9,6 +9,9 @@ const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
 async function getContent() {
 	const imageData =  await homepagecontent.frontPage();
 	console.log('UK HOMEPAGE', imageData);
+
+	const internationalImageData =  await homepagecontent.frontPage('international');
+	console.log('INT HOMEPAGE', internationalImageData);
 }
 
 getContent();
