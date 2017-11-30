@@ -9,23 +9,24 @@ async function getAllImages(edition = 'uk') {
 	let allSectionImages = [];
 	
 	for(let i = 0; i < sections.length; ++i) {
-		const sectionData = await getList(sections[i][edition], sections[i].isConcept);
-		let layout = sectionData.hasOwnProperty('layoutHint')?sectionData.layoutHint:sections[i].layout;
-		
-		const sectionImages = await getImagesFor(sectionData.items, structure.getPositions(layout));
-		allSectionImages = allSectionImages.concat(sectionImages);
+		if(sections[i][edition] !== 'hidden') {
+			const sectionData = await getList(sections[i][edition], sections[i].isConcept);
+			let layout = sectionData.hasOwnProperty('layoutHint')?sectionData.layoutHint:sections[i].layout;
+			
+			const sectionImages = await getImagesFor(sectionData.items, structure.getPositions(layout));
+			allSectionImages = allSectionImages.concat(sectionImages);
 
-		if(i === 0 && layout === 'landscape') {
-			/*Special accomodation for when landscape piece is opinion*/
-			const sectionHeadshots = await getHeadshotsFor(sectionData.items, 2);
-			allSectionImages = allSectionImages.concat(sectionHeadshots);	
-		} else if(sections[i].checkHeadshots !== null) {
-			const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots);
-			allSectionImages = allSectionImages.concat(sectionHeadshots);
+			if(i === 0 && layout === 'landscape') {
+				/*Special accomodation for when landscape piece is opinion*/
+				const sectionHeadshots = await getHeadshotsFor(sectionData.items, 2);
+				allSectionImages = allSectionImages.concat(sectionHeadshots);	
+			} else if(sections[i].checkHeadshots !== null) {
+				const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots);
+				allSectionImages = allSectionImages.concat(sectionHeadshots);
+			}
 		}
 	}
 
-	console.log(allSectionImages.length);
 	return allSectionImages;
 }
 

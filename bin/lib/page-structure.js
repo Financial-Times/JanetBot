@@ -7,8 +7,8 @@ const pageStructure = [
 }, 
 {
 	isConcept: false,
-	uk: process.env.MID_SECTION_LIST,
-	international: process.env.MID_SECTION_LIST,
+	uk: process.env.UK_MID_SECTION_LIST,
+	international: process.env.INT_MID_SECTION_LIST,
 	layout: 'midsection',
 	checkHeadshots: 6
 },

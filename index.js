@@ -6,16 +6,15 @@ const homepagecontent = require('./bin/lib/homepage');
 const Utils  = require('./bin/lib/utils');
 
 const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
-console.log(pollInterval);
 
 async function getContent() {
 	const imageData =  await homepagecontent.frontPage();
-	console.log('UK HOMEPAGE', imageData);
+	console.log('UK HOMEPAGE', imageData.length);
 
 	const internationalImageData =  await homepagecontent.frontPage('international');
-	console.log('INT HOMEPAGE', internationalImageData);
+	console.log('INT HOMEPAGE', internationalImageData.length);
 }
 
-// getContent();
+getContent();
 
 setTimeout(getContent, pollInterval);
