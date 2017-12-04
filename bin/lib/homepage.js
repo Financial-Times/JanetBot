@@ -12,17 +12,39 @@ async function getAllImages(edition = 'uk') {
 		if(sections[i][edition] !== 'hidden') {
 			const sectionData = await getList(sections[i][edition], sections[i].isConcept);
 			let layout = sectionData.hasOwnProperty('layoutHint')?sectionData.layoutHint:sections[i].layout;
+
+			if(edition === 'international' && i === 0) {
+				Utils.saveBase(sectionData.items);
+			}
 			
 			const sectionImages = await getImagesFor(sectionData.items, structure.getPositions(layout));
 			allSectionImages = allSectionImages.concat(sectionImages);
 
 			if(i === 0 && layout === 'landscape') {
-				/*Special accomodation for when landscape piece is opinion*/
+				//Special accomodation for when landscape piece is opinion
 				const sectionHeadshots = await getHeadshotsFor(sectionData.items, 2);
 				allSectionImages = allSectionImages.concat(sectionHeadshots);	
 			} else if(sections[i].checkHeadshots !== null) {
 				const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots);
 				allSectionImages = allSectionImages.concat(sectionHeadshots);
+			}
+		} else if( edition === 'international' && sections[i].hasOwnProperty('internationalVariants')) {
+			const variants = sections[i].internationalVariants;
+
+			for (let j = 0; j < variants.length; ++j) {
+				console.log(variants[j].region);
+				const sectionData = await getList(variants[j].listID, sections[i].isConcept);
+				sectionData.items = Utils.dedupe(sectionData.items);
+
+				let layout = sections[i].layout;
+				
+				const sectionImages = await getImagesFor(sectionData.items, structure.getPositions(layout));
+				allSectionImages = allSectionImages.concat(sectionImages);
+
+				if(sections[i].checkHeadshots !== null) {
+					const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots);
+					allSectionImages = allSectionImages.concat(sectionHeadshots);
+				}
 			}
 		}
 	}

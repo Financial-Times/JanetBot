@@ -16,5 +16,4 @@ async function getContent() {
 }
 
 getContent();
-
-setTimeout(getContent, pollInterval);
+// let polling = setInterval(getContent, pollInterval);

@@ -15,7 +15,24 @@ const pageStructure = [
 { 
 	isConcept: false,
 	uk: process.env.UK_REG_NEWS,
-	international: process.env.EU_REG_NEWS,
+	international: process.env.INT_REG_NEWS,
+	internationalVariants: [
+		{
+			region: 'Asia',
+			listID: process.env.AS_REG_NEWS
+
+		},
+		{
+			region: 'Europe',
+			listID: process.env.EU_REG_NEWS
+
+		},
+		{
+			region: 'US',
+			listID: process.env.US_REG_NEWS
+
+		}
+	],
 	layout: 'regionalnews',
 	checkHeadshots: 4
 }, 
