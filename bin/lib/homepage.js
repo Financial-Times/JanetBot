@@ -9,28 +9,52 @@ async function getAllImages(edition = 'uk') {
 	let allSectionImages = [];
 	
 	for(let i = 0; i < sections.length; ++i) {
-		const sectionData = await getList(sections[i][edition], sections[i].isConcept);
-		let layout = sectionData.hasOwnProperty('layoutHint')?sectionData.layoutHint:sections[i].layout;
-		
-		const sectionImages = await getImagesFor(sectionData.items, structure.getPositions(layout));
-		allSectionImages = allSectionImages.concat(sectionImages);
+		if(sections[i][edition] !== 'hidden') {
+			const sectionData = await getList(sections[i][edition], sections[i].isConcept);
+			let layout = sectionData.hasOwnProperty('layoutHint')?sectionData.layoutHint:sections[i].layout;
 
-		if(i === 0 && layout === 'landscape') {
-			/*Special accomodation for when landscape piece is opinion*/
-			const sectionHeadshots = await getHeadshotsFor(sectionData.items, 2);
-			allSectionImages = allSectionImages.concat(sectionHeadshots);	
-		} else if(sections[i].checkHeadshots !== null) {
-			const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots);
-			allSectionImages = allSectionImages.concat(sectionHeadshots);
+			if(edition === 'international' && i === 0) {
+				Utils.saveBase(sectionData.items);
+			}
+			
+			const sectionImages = await getImagesFor(sectionData.items, structure.getPositions(layout));
+			allSectionImages = allSectionImages.concat(sectionImages);
+
+			if(i === 0 && layout === 'landscape') {
+				//Special accommodation for when landscape piece is opinion
+				const sectionHeadshots = await getHeadshotsFor(sectionData.items, 2);
+				allSectionImages = allSectionImages.concat(sectionHeadshots);	
+			} else if(sections[i].checkHeadshots !== null) {
+				const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots);
+				allSectionImages = allSectionImages.concat(sectionHeadshots);
+			}
+		} else if( edition === 'international' && sections[i].hasOwnProperty('internationalVariants')) {
+			const variants = sections[i].internationalVariants;
+
+			for (let j = 0; j < variants.length; ++j) {
+				console.log(variants[j].region);
+				const sectionData = await getList(variants[j].listID, sections[i].isConcept);
+				sectionData.items = Utils.dedupe(sectionData.items);
+
+				let layout = sections[i].layout;
+				
+				const sectionImages = await getImagesFor(sectionData.items, structure.getPositions(layout));
+				allSectionImages = allSectionImages.concat(sectionImages);
+
+				if(sections[i].checkHeadshots !== null) {
+					const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots);
+					allSectionImages = allSectionImages.concat(sectionHeadshots);
+				}
+			}
 		}
 	}
 
-	console.log(allSectionImages.length);
 	return allSectionImages;
 }
 
 async function getImagesFor(list, indices) {
 	const links = [];
+
 	for(let i = 0; i < indices.length; ++i) {
 		const imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
 
@@ -99,7 +123,7 @@ async function getHeadshotsFor(list, itemCount) {
 
 async function getList(listID, isConcept = false) {
 	const url = isConcept?`http://api.ft.com/content?isAnnotatedBy=${listID}&apiKey=${process.env.FT_API_KEY}`:`http://api.ft.com/lists/${listID}?apiKey=${process.env.FT_API_KEY}`;
-	
+
 	return fetch(url)
 			.then(res => res.json())
 			.then(data => {

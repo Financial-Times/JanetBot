@@ -7,15 +7,32 @@ const pageStructure = [
 }, 
 {
 	isConcept: false,
-	uk: process.env.MID_SECTION_LIST,
-	international: process.env.MID_SECTION_LIST,
+	uk: process.env.UK_MID_SECTION_LIST,
+	international: process.env.INT_MID_SECTION_LIST,
 	layout: 'midsection',
 	checkHeadshots: 6
 },
 { 
 	isConcept: false,
 	uk: process.env.UK_REG_NEWS,
-	international: process.env.EU_REG_NEWS,
+	international: process.env.INT_REG_NEWS,
+	internationalVariants: [
+		{
+			region: 'Asia',
+			listID: process.env.AS_REG_NEWS
+
+		},
+		{
+			region: 'Europe',
+			listID: process.env.EU_REG_NEWS
+
+		},
+		{
+			region: 'US',
+			listID: process.env.US_REG_NEWS
+
+		}
+	],
 	layout: 'regionalnews',
 	checkHeadshots: 4
 }, 
