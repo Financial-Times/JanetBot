@@ -21,7 +21,7 @@ async function getAllImages(edition = 'uk') {
 			allSectionImages = allSectionImages.concat(sectionImages);
 
 			if(i === 0 && layout === 'landscape') {
-				//Special accomodation for when landscape piece is opinion
+				//Special accommodation for when landscape piece is opinion
 				const sectionHeadshots = await getHeadshotsFor(sectionData.items, 2);
 				allSectionImages = allSectionImages.concat(sectionHeadshots);	
 			} else if(sections[i].checkHeadshots !== null) {
@@ -54,6 +54,7 @@ async function getAllImages(edition = 'uk') {
 
 async function getImagesFor(list, indices) {
 	const links = [];
+
 	for(let i = 0; i < indices.length; ++i) {
 		const imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
 
@@ -122,7 +123,7 @@ async function getHeadshotsFor(list, itemCount) {
 
 async function getList(listID, isConcept = false) {
 	const url = isConcept?`http://api.ft.com/content?isAnnotatedBy=${listID}&apiKey=${process.env.FT_API_KEY}`:`http://api.ft.com/lists/${listID}?apiKey=${process.env.FT_API_KEY}`;
-	
+
 	return fetch(url)
 			.then(res => res.json())
 			.then(data => {
