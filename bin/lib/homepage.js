@@ -17,15 +17,15 @@ async function getAllImages(edition = 'uk') {
 				Utils.saveBase(sectionData.items);
 			}
 			
-			const sectionImages = await getImagesFor(sectionData.items, structure.getPositions(layout));
+			const sectionImages = await getImagesFor(sectionData.items, layout, i, edition);
 			allSectionImages = allSectionImages.concat(sectionImages);
 
 			if(i === 0 && layout === 'landscape') {
 				//Special accommodation for when landscape piece is opinion
-				const sectionHeadshots = await getHeadshotsFor(sectionData.items, 2);
+				const sectionHeadshots = await getHeadshotsFor(sectionData.items, 2, layout, i, edition);
 				allSectionImages = allSectionImages.concat(sectionHeadshots);	
 			} else if(sections[i].checkHeadshots !== null) {
-				const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots);
+				const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots, layout, i, edition);
 				allSectionImages = allSectionImages.concat(sectionHeadshots);
 			}
 		} else if( edition === 'international' && sections[i].hasOwnProperty('internationalVariants')) {
@@ -38,11 +38,11 @@ async function getAllImages(edition = 'uk') {
 
 				let layout = sections[i].layout;
 				
-				const sectionImages = await getImagesFor(sectionData.items, structure.getPositions(layout));
+				const sectionImages = await getImagesFor(sectionData.items, layout, i, `${edition}__${variants[j].region}`);
 				allSectionImages = allSectionImages.concat(sectionImages);
 
 				if(sections[i].checkHeadshots !== null) {
-					const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots);
+					const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots, layout, i, `${edition}__${variants[j].region}`);
 					allSectionImages = allSectionImages.concat(sectionHeadshots);
 				}
 			}
@@ -52,14 +52,28 @@ async function getAllImages(edition = 'uk') {
 	return allSectionImages;
 }
 
-async function getImagesFor(list, indices) {
+async function getImagesFor(list, layout, sectionID, edition) {
 	const links = [];
+	const indices = structure.getPositions(layout);
 
 	for(let i = 0; i < indices.length; ++i) {
 		const imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
 
-		if(imageData.length) {
-			links.push(imageData[0].binaryUrl.replace(process.env.API_IMG_URL, process.env.REPLACE_IMG_URL).concat('?source=janetbot'));	
+		if(imageData.images.length) {
+			const image = {
+				timestamp: new Date().getTime(),
+				edition: edition,
+				sectionLayout: layout,
+				sectionId: sectionID,
+				articleUUID: Utils.extractUUID(list[indices[i]]),
+				sectionPos: indices[i],
+				imageType: imageData.type,
+				originalUrl: imageData.images[0].binaryUrl,
+				formattedURL: imageData.images[0].binaryUrl.replace(process.env.API_IMG_URL, process.env.REPLACE_IMG_URL).concat('?source=janetbot')
+
+			}
+
+			links.push(image);	
 		}
 	}
 
@@ -73,14 +87,14 @@ async function getTeaser(uuid) {
 			.then(data => {
 				if(data.alternativeImages && data.alternativeImages.promotionalImage) {
 
-					return new Array(data.alternativeImages.promotionalImage);
+					return {type: 'promo', images: new Array(data.alternativeImages.promotionalImage)};
 				}
 
 				if(data.mainImage) {
-					return data.mainImage.members;	
+					return {type: 'main', images: data.mainImage.members};	
 				}
 
-				return [];
+				return {type: 'main', images: []};
 				
 			})
 			.catch(err => { throw err });
@@ -102,7 +116,7 @@ async function getHeadshot(url) {
 			.catch(err => { throw err });
 }
 
-async function getHeadshotsFor(list, itemCount) {
+async function getHeadshotsFor(list, itemCount, layout, sectionID, edition) {
 	const headShots = [];
 	for(let i = 1; i < itemCount; ++i) {
 		const authorData = await getAuthor(Utils.extractUUID(list[i]));
@@ -112,7 +126,18 @@ async function getHeadshotsFor(list, itemCount) {
 				if(authorData[j].predicate === 'http://www.ft.com/ontology/annotation/hasAuthor') {
 					const imageData = await getHeadshot(authorData[j].apiUrl);
 					if(imageData._imageUrl) {
-						headShots.push(imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot'));
+						const image = {
+							timestamp: new Date().getTime(),
+							edition: edition,
+							sectionLayout: layout,
+							sectionId: sectionID,
+							articleUUID: Utils.extractUUID(list[i]),
+							sectionPos: i,
+							imageType: 'headshot',
+							originalUrl: imageData._imageUrl,
+							formattedURL: imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot')
+						}
+						headShots.push(image);
 					}
 				}
 			}
