@@ -56,24 +56,26 @@ async function getImagesFor(list, layout, sectionID, edition) {
 	const links = [];
 	const indices = structure.getPositions(layout);
 
-	for(let i = 0; i < indices.length; ++i) {
-		const imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
+	if(list !== undefined) {
+		for(let i = 0; i < indices.length; ++i) {
+			const imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
 
-		if(imageData.images.length) {
-			const formattedURL = imageData.images[0].binaryUrl.replace(process.env.API_IMG_URL, process.env.REPLACE_IMG_URL).concat('?source=janetbot');
-			const image = {
-				timestamp: new Date().getTime(),
-				edition: edition,
-				sectionLayout: layout,
-				sectionId: sectionID,
-				articleUUID: Utils.extractUUID(list[indices[i]]),
-				sectionPos: indices[i],
-				imageType: imageData.type,
-				originalUrl: imageData.images[0].binaryUrl,
-				formattedURL: formattedURL
+			if(imageData.images.length) {
+				const formattedURL = imageData.images[0].binaryUrl.replace(process.env.API_IMG_URL, process.env.REPLACE_IMG_URL).concat('?source=janetbot');
+				const image = {
+					timestamp: new Date().getTime(),
+					edition: edition,
+					sectionLayout: layout,
+					sectionId: sectionID,
+					articleUUID: Utils.extractUUID(list[indices[i]]),
+					sectionPos: indices[i],
+					imageType: imageData.type,
+					originalUrl: imageData.images[0].binaryUrl,
+					formattedURL: formattedURL
 
+				}
+				links.push(image);	
 			}
-			links.push(image);	
 		}
 	}
 
@@ -118,31 +120,35 @@ async function getHeadshot(url) {
 
 async function getHeadshotsFor(list, itemCount, layout, sectionID, edition) {
 	const headShots = [];
-	for(let i = 1; i < itemCount; ++i) {
-		const authorData = await getAuthor(Utils.extractUUID(list[i]));
 
-		if(authorData.find(Utils.isOpinion)) {
-			for(let j = 0; j < authorData.length; ++j) {
-				if(authorData[j].predicate === 'http://www.ft.com/ontology/annotation/hasAuthor') {
-					const imageData = await getHeadshot(authorData[j].apiUrl);
-					if(imageData._imageUrl) {
-						const image = {
-							timestamp: new Date().getTime(),
-							edition: edition,
-							sectionLayout: layout,
-							sectionId: sectionID,
-							articleUUID: Utils.extractUUID(list[i]),
-							sectionPos: i,
-							imageType: 'headshot',
-							originalUrl: imageData._imageUrl,
-							formattedURL: imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot')
+	if(list !== undefined) {
+		for(let i = 1; i < itemCount; ++i) {
+			const authorData = await getAuthor(Utils.extractUUID(list[i]));
+
+			if(authorData.find(Utils.isOpinion)) {
+				for(let j = 0; j < authorData.length; ++j) {
+					if(authorData[j].predicate === 'http://www.ft.com/ontology/annotation/hasAuthor') {
+						const imageData = await getHeadshot(authorData[j].apiUrl);
+						if(imageData._imageUrl) {
+							const image = {
+								timestamp: new Date().getTime(),
+								edition: edition,
+								sectionLayout: layout,
+								sectionId: sectionID,
+								articleUUID: Utils.extractUUID(list[i]),
+								sectionPos: i,
+								imageType: 'headshot',
+								originalUrl: imageData._imageUrl,
+								formattedURL: imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot')
+							}
+							headShots.push(image);
 						}
-						headShots.push(image);
 					}
 				}
 			}
 		}
 	}
+
 	return headShots;
 }
 
