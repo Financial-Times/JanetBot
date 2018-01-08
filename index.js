@@ -12,10 +12,10 @@ async function getContent() {
 	const imageData =  await homepagecontent.frontPage();
 	console.log('UK HOMEPAGE', imageData.length, imageData);
 
-	const internationalImageData =  await homepagecontent.frontPage('international');
-	console.log('INT HOMEPAGE', internationalImageData.length, internationalImageData);
+	// const internationalImageData =  await homepagecontent.frontPage('international');
+	// console.log('INT HOMEPAGE', internationalImageData.length, internationalImageData);
 
-	janetBot.warn(`There are ${imageData.length} images on the UK Homepage & ${internationalImageData.length} on the International homepage, including local variations.`);
+	// janetBot.warn(`There are ${imageData.length} images on the UK Homepage & ${internationalImageData.length} on the International homepage, including local variations.`);
 }
 
 getContent();

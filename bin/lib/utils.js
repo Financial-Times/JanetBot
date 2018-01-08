@@ -29,8 +29,8 @@ function removeDuplicatesFromSection(section) {
     }
 
     section = section.concat(tempDupes);
-
-    //Adds duplicates at the end of the array, in case content is too short
+	//Re-adds duplicates at the end of the array, in case content is too short
+	
 	return section;
 }
 

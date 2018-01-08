@@ -60,6 +60,7 @@ async function getImagesFor(list, layout, sectionID, edition) {
 		const imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
 
 		if(imageData.images.length) {
+			const formattedURL = imageData.images[0].binaryUrl.replace(process.env.API_IMG_URL, process.env.REPLACE_IMG_URL).concat('?source=janetbot');
 			const image = {
 				timestamp: new Date().getTime(),
 				edition: edition,
@@ -69,10 +70,9 @@ async function getImagesFor(list, layout, sectionID, edition) {
 				sectionPos: indices[i],
 				imageType: imageData.type,
 				originalUrl: imageData.images[0].binaryUrl,
-				formattedURL: imageData.images[0].binaryUrl.replace(process.env.API_IMG_URL, process.env.REPLACE_IMG_URL).concat('?source=janetbot')
+				formattedURL: formattedURL
 
 			}
-
 			links.push(image);	
 		}
 	}
