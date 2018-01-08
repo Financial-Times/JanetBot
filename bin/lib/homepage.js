@@ -55,12 +55,14 @@ async function getAllImages(edition = 'uk') {
 async function getImagesFor(list, indices) {
 	const links = [];
 
-	for(let i = 0; i < indices.length; ++i) {
-		const imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
+	if(list !== undefined) {
+		for(let i = 0; i < indices.length; ++i) {
+			const imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
 
-		if(imageData.length) {
-			links.push(imageData[0].binaryUrl.replace(process.env.API_IMG_URL, process.env.REPLACE_IMG_URL).concat('?source=janetbot'));	
-		}
+			if(imageData.length) {
+				links.push(imageData[0].binaryUrl.replace(process.env.API_IMG_URL, process.env.REPLACE_IMG_URL).concat('?source=janetbot'));	
+			}
+		}	
 	}
 
 	return links;
@@ -104,20 +106,24 @@ async function getHeadshot(url) {
 
 async function getHeadshotsFor(list, itemCount) {
 	const headShots = [];
-	for(let i = 1; i < itemCount; ++i) {
-		const authorData = await getAuthor(Utils.extractUUID(list[i]));
 
-		if(authorData.find(Utils.isOpinion)) {
-			for(let j = 0; j < authorData.length; ++j) {
-				if(authorData[j].predicate === 'http://www.ft.com/ontology/annotation/hasAuthor') {
-					const imageData = await getHeadshot(authorData[j].apiUrl);
-					if(imageData._imageUrl) {
-						headShots.push(imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot'));
+	if(list !== undefined) {
+		for(let i = 1; i < itemCount; ++i) {
+			const authorData = await getAuthor(Utils.extractUUID(list[i]));
+
+			if(authorData.find(Utils.isOpinion)) {
+				for(let j = 0; j < authorData.length; ++j) {
+					if(authorData[j].predicate === 'http://www.ft.com/ontology/annotation/hasAuthor') {
+						const imageData = await getHeadshot(authorData[j].apiUrl);
+						if(imageData._imageUrl) {
+							headShots.push(imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot'));
+						}
 					}
 				}
 			}
 		}
 	}
+	
 	return headShots;
 }
 
