@@ -2,11 +2,26 @@ if (process.env.NODE_ENV !== 'production') require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const app = express();
+const basicAuth = require('express-basic-auth');
+const authUser = process.env.AUTH_USER;
+const credentials = {};
+credentials[authUser] = process.env.TOKEN;
+
 const homepagecontent = require('./bin/lib/homepage');
 const Utils  = require('./bin/lib/utils');
 const janetBot = require('./bin/lib/bot');
 
 const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
+
+app.use(basicAuth({
+		users: credentials
+	})
+);
+app.get('/results', function(req, res){
+	res.json({'ok': 'ok'});
+});
+
+app.listen(process.env.PORT || 2018);
 
 async function getContent() {
 	const imageData =  await homepagecontent.frontPage();
