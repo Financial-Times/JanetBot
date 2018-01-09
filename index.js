@@ -7,6 +7,8 @@ const authUser = process.env.AUTH_USER;
 const credentials = {};
 credentials[authUser] = process.env.TOKEN;
 
+const results = {};
+
 const homepagecontent = require('./bin/lib/homepage');
 const Utils  = require('./bin/lib/utils');
 const janetBot = require('./bin/lib/bot');
@@ -17,8 +19,13 @@ app.use(basicAuth({
 		users: credentials
 	})
 );
-app.get('/results', function(req, res){
-	res.json({'ok': 'ok'});
+
+app.get('/results/:version', function(req, res){
+	if(results[req.params.version]) {
+		res.json({'status': 200, 'content': results[req.params.version]});	
+	} else {
+		res.json({'status': 404});
+	}
 });
 
 app.listen(process.env.PORT || 2018);
@@ -26,9 +33,10 @@ app.listen(process.env.PORT || 2018);
 async function getContent() {
 	const imageData =  await homepagecontent.frontPage();
 	// console.log('UK HOMEPAGE', imageData.length, imageData);
-	console.log(await analyseContent(imageData));
+	results['uk'] = await analyseContent(imageData);
 
-	// const internationalImageData =  await homepagecontent.frontPage('international');
+	const internationalImageData =  await homepagecontent.frontPage('international');
+	results['international'] = await analyseContent(internationalImageData);
 	// console.log('INT HOMEPAGE', internationalImageData.length, internationalImageData);
 
 	// janetBot.warn(`There are ${imageData.length} images on the UK Homepage & ${internationalImageData.length} on the International homepage, including local variations.`);
