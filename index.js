@@ -20,7 +20,13 @@ const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
 // 	})
 // );
 
-app.get('/results/:version', function(req, res){
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*.ft.com");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
+app.get('/results/:version', (req, res) => {
 	if(results[req.params.version]) {
 		res.json({'status': 200, 'content': results[req.params.version]});	
 	} else {
