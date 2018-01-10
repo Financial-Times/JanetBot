@@ -15,10 +15,10 @@ const janetBot = require('./bin/lib/bot');
 
 const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
 
-app.use(basicAuth({
-		users: credentials
-	})
-);
+// app.use(basicAuth({
+// 		users: credentials
+// 	})
+// );
 
 app.get('/results/:version', function(req, res){
 	if(results[req.params.version]) {
