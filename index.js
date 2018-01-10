@@ -58,4 +58,4 @@ async function analyseContent(content) {
 }
 
 getContent();
-// let polling = setInterval(getContent, pollInterval);
+setInterval(getContent, pollInterval);
