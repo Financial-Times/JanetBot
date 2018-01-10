@@ -21,7 +21,7 @@ const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
 // );
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*.ft.com");
+  res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
