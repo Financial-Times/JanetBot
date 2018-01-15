@@ -8,7 +8,10 @@ const credentials = {};
 credentials[authUser] = process.env.TOKEN;
 
 const results = {};
-const totals = {};
+const totals = {
+	'uk': {},
+	'international': {}
+};
 
 const homepagecontent = require('./bin/lib/homepage');
 const Utils  = require('./bin/lib/utils');
