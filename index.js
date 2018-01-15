@@ -44,7 +44,7 @@ async function getContent() {
 	const imageData =  await homepagecontent.frontPage();
 	// console.log('UK HOMEPAGE', imageData.length, imageData);
 	totals['uk']['women'] = 0;	
-	total['uk']['images'] = imageData.length;
+	totals['uk']['images'] = imageData.length;
 	results['uk'] = await analyseContent(imageData, 'uk');
 	// console.log(results);
 
