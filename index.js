@@ -8,6 +8,7 @@ const credentials = {};
 credentials[authUser] = process.env.TOKEN;
 
 const results = {};
+const totals = {};
 
 const homepagecontent = require('./bin/lib/homepage');
 const Utils  = require('./bin/lib/utils');
@@ -28,7 +29,7 @@ app.use((req, res, next) => {
 
 app.get('/results/:version', (req, res) => {
 	if(results[req.params.version]) {
-		res.json({'status': 200, 'content': results[req.params.version]});	
+		res.json({'status': 200, 'content': results[req.params.version], 'total': totals[req.params.version]});	
 	} else {
 		res.json({'status': 404});
 	}
@@ -39,16 +40,16 @@ app.listen(process.env.PORT || 2018);
 async function getContent() {
 	const imageData =  await homepagecontent.frontPage();
 	// console.log('UK HOMEPAGE', imageData.length, imageData);
-	results['uk_women'] = 0;	
-	results['uk_total'] = imageData.length;
-	results['uk'] = await analyseContent(imageData, 'uk_women');
+	totals['uk']['women'] = 0;	
+	total['uk']['images'] = imageData.length;
+	results['uk'] = await analyseContent(imageData, 'uk');
 	// console.log(results);
 
 
 	const internationalImageData =  await homepagecontent.frontPage('international');
-	results['international_women'] = 0;	
-	results['international_total'] = internationalImageData.length;
-	results['international'] = await analyseContent(internationalImageData, 'international_women');
+	totals['international']['women'] = 0;	
+	totals['international']['images'] = internationalImageData.length;
+	results['international'] = await analyseContent(internationalImageData, 'international');
 	// console.log('INT HOMEPAGE', internationalImageData.length, internationalImageData);
 
 	// janetBot.warn(`There are ${imageData.length} images on the UK Homepage & ${internationalImageData.length} on the International homepage, including local variations.`);
@@ -59,7 +60,7 @@ async function analyseContent(content, editionKey) {
 		//Add mock result until API ready
 		content[i].isWoman = (Math.floor(Math.random()*1000)%5 === 0);
 		if(content[i].isWoman) {
-			results[editionKey] += 1;
+			results[editionKey]['women'] += 1;
 		}
 	}
 
