@@ -58,7 +58,7 @@ async function getImagesFor(list, layout, sectionID, edition) {
 
 	if(list !== undefined) {
 		for(let i = 0; i < indices.length; ++i) {
-			const imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
+			let imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
 
 			if(imageData.images.length) {
 				const formattedURL = imageData.images[0].binaryUrl.replace(process.env.API_IMG_URL, process.env.REPLACE_IMG_URL).concat('?source=janetbot');
@@ -68,6 +68,7 @@ async function getImagesFor(list, layout, sectionID, edition) {
 					sectionLayout: layout,
 					sectionId: sectionID,
 					articleUUID: Utils.extractUUID(list[indices[i]]),
+					articleUrl = imageData.webUrl,
 					sectionPos: indices[i],
 					imageType: imageData.type,
 					originalUrl: imageData.images[0].binaryUrl,
@@ -89,11 +90,11 @@ async function getTeaser(uuid) {
 			.then(data => {
 				if(data.alternativeImages && data.alternativeImages.promotionalImage) {
 
-					return {type: 'promo', images: new Array(data.alternativeImages.promotionalImage)};
+					return {type: 'promo', images: new Array(data.alternativeImages.promotionalImage), webUrl: data.webUrl};
 				}
 
 				if(data.mainImage) {
-					return {type: 'main', images: data.mainImage.members};	
+					return {type: 'main', images: data.mainImage.members, webUrl: data.webUrl};	
 				}
 
 				return {type: 'main', images: []};
