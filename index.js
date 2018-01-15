@@ -39,19 +39,28 @@ app.listen(process.env.PORT || 2018);
 async function getContent() {
 	const imageData =  await homepagecontent.frontPage();
 	// console.log('UK HOMEPAGE', imageData.length, imageData);
-	results['uk'] = await analyseContent(imageData);
+	results['uk_women'] = 0;	
+	results['uk_total'] = imageData.length;
+	results['uk'] = await analyseContent(imageData, 'uk_women');
+	// console.log(results);
+
 
 	const internationalImageData =  await homepagecontent.frontPage('international');
-	results['international'] = await analyseContent(internationalImageData);
+	results['international_women'] = 0;	
+	results['international_total'] = internationalImageData.length;
+	results['international'] = await analyseContent(internationalImageData, 'international_women');
 	// console.log('INT HOMEPAGE', internationalImageData.length, internationalImageData);
 
 	// janetBot.warn(`There are ${imageData.length} images on the UK Homepage & ${internationalImageData.length} on the International homepage, including local variations.`);
 }
 
-async function analyseContent(content) {
+async function analyseContent(content, editionKey) {
 	for(let i = 0; i < content.length; ++i) {
 		//Add mock result until API ready
 		content[i].isWoman = (Math.floor(Math.random()*1000)%5 === 0);
+		if(content[i].isWoman) {
+			results[editionKey] += 1;
+		}
 	}
 
 	return content;
