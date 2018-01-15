@@ -68,7 +68,7 @@ async function getImagesFor(list, layout, sectionID, edition) {
 					sectionLayout: layout,
 					sectionId: sectionID,
 					articleUUID: Utils.extractUUID(list[indices[i]]),
-					articleUrl = imageData.webUrl,
+					articleUrl: imageData.webUrl,
 					sectionPos: indices[i],
 					imageType: imageData.type,
 					originalUrl: imageData.images[0].binaryUrl,
