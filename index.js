@@ -63,7 +63,7 @@ async function analyseContent(content, editionKey) {
 		//Add mock result until API ready
 		content[i].isWoman = (Math.floor(Math.random()*1000)%5 === 0);
 		if(content[i].isWoman) {
-			results[editionKey]['women'] += 1;
+			totals[editionKey]['women'] += 1;
 		}
 	}
 
