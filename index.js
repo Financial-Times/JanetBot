@@ -46,13 +46,12 @@ async function getContent() {
 	totals['uk']['women'] = 0;	
 	totals['uk']['images'] = imageData.length;
 	results['uk'] = await analyseContent(imageData, 'uk');
-	// console.log(results);
 
 
-	// const internationalImageData =  await homepagecontent.frontPage('international');
-	// totals['international']['women'] = 0;	
-	// totals['international']['images'] = internationalImageData.length;
-	// results['international'] = await analyseContent(internationalImageData, 'international');
+	const internationalImageData =  await homepagecontent.frontPage('international');
+	totals['international']['women'] = 0;	
+	totals['international']['images'] = internationalImageData.length;
+	results['international'] = await analyseContent(internationalImageData, 'international');
 	// console.log('INT HOMEPAGE', internationalImageData.length, internationalImageData);
 
 	// janetBot.warn(`There are ${imageData.length} images on the UK Homepage & ${internationalImageData.length} on the International homepage, including local variations.`);
