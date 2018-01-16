@@ -38,10 +38,19 @@ function removeDuplicatesFromSection(section) {
 	return section;
 }
 
+function setPlaceholderURL(url) {
+	if(!url.startsWith('http://www.ft.com/cms/') && !url.startsWith('https://www.ft.com/video/') && !url.startsWith('http://www.ft.com/fastft/')) {
+		return url;
+	}
+
+	return null;
+}
+
 module.exports = {
 	minutesToMs: minutesToMs,
 	extractUUID: extractUUID,
 	isOpinion: isOpinion,
 	dedupe: removeDuplicatesFromSection,
-	saveBase: setComparisonBase
+	saveBase: setComparisonBase,
+	getArticleURL: setPlaceholderURL
 };
