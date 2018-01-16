@@ -5,7 +5,11 @@ function minutesToMs(mn) {
 }
 
 function extractUUID(link) {
-	return link.apiUrl.replace('http://api.ft.com/content/', '');
+	if(link !== undefined) {
+		return link.apiUrl.replace('http://api.ft.com/content/', '');	
+	}
+
+	return undefined;
 }
 
 function isOpinion(annotation) {
