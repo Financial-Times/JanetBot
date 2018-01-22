@@ -13,6 +13,8 @@ const totals = {
 	'international': {}
 };
 
+let latestCheck;
+
 const homepagecontent = require('./bin/lib/homepage');
 const Utils  = require('./bin/lib/utils');
 const janetBot = require('./bin/lib/bot');
@@ -32,7 +34,9 @@ app.use((req, res, next) => {
 
 app.get('/results/:version', (req, res) => {
 	if(results[req.params.version]) {
-		res.json({'status': 200, 'content': results[req.params.version], 'total': totals[req.params.version]});	
+		res.json({'status': 200, 'content': results[req.params.version], 'total': totals[req.params.version], 'date': latestCheck});	
+	} else if(req.params.version === 'all'){
+		res.json({'status': 200, 'content': results, 'total': totals, 'date': latestCheck});	
 	} else {
 		res.json({'status': 404});
 	}
@@ -54,6 +58,8 @@ async function getContent() {
 	totals['international']['topHalfWomen'] = 0;	
 	totals['international']['images'] = internationalImageData.length;
 	results['international'] = await analyseContent(internationalImageData, 'international');
+
+	latestCheck = new Date();
 	// console.log('INT HOMEPAGE', internationalImageData.length, internationalImageData);
 
 	// janetBot.warn(`There are ${imageData.length} images on the UK Homepage & ${internationalImageData.length} on the International homepage, including local variations.`);
