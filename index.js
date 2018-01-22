@@ -21,10 +21,10 @@ const janetBot = require('./bin/lib/bot');
 
 const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
 
-// app.use(basicAuth({
-// 		users: credentials
-// 	})
-// );
+app.use(basicAuth({
+		users: credentials
+	})
+);
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
