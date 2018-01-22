@@ -43,13 +43,15 @@ app.listen(process.env.PORT || 2018);
 async function getContent() {
 	const imageData =  await homepagecontent.frontPage();
 	// console.log('UK HOMEPAGE', imageData.length, imageData);
-	totals['uk']['women'] = 0;	
+	totals['uk']['women'] = 0;
+	totals['uk']['topHalfWomen'] = 0;	
 	totals['uk']['images'] = imageData.length;
 	results['uk'] = await analyseContent(imageData, 'uk');
 
 
 	const internationalImageData =  await homepagecontent.frontPage('international');
-	totals['international']['women'] = 0;	
+	totals['international']['women'] = 0;
+	totals['international']['topHalfWomen'] = 0;	
 	totals['international']['images'] = internationalImageData.length;
 	results['international'] = await analyseContent(internationalImageData, 'international');
 	// console.log('INT HOMEPAGE', internationalImageData.length, internationalImageData);
@@ -61,8 +63,13 @@ async function analyseContent(content, editionKey) {
 	for(let i = 0; i < content.length; ++i) {
 		//Add mock result until API ready
 		content[i].isWoman = (Math.floor(Math.random()*1000)%5 === 0);
+
 		if(content[i].isWoman) {
 			totals[editionKey]['women'] += 1;
+			
+			if(content[i].isTopHalf) {
+				totals[editionKey]['topHalfWomen'] += 1;
+			}
 		}
 	}
 

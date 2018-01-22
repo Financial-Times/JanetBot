@@ -72,7 +72,8 @@ async function getImagesFor(list, layout, sectionID, edition) {
 					sectionPos: indices[i],
 					imageType: imageData.type,
 					originalUrl: imageData.images[0].binaryUrl,
-					formattedURL: formattedURL
+					formattedURL: formattedURL,
+					isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false
 
 				}
 				links.push(image);	
@@ -141,7 +142,8 @@ async function getHeadshotsFor(list, itemCount, layout, sectionID, edition) {
 								sectionPos: i,
 								imageType: 'headshot',
 								originalUrl: imageData._imageUrl,
-								formattedURL: imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot')
+								formattedURL: imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot'),
+								isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false
 							}
 							headShots.push(image);
 						}
