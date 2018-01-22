@@ -5,7 +5,7 @@ const app = express();
 const basicAuth = require('express-basic-auth');
 const authUser = process.env.AUTH_USER;
 const credentials = {};
-credentials[authUser] = process.env.TOKEN;
+credentials[authUser] = process.env.AUTH_TOKEN;
 
 const results = {};
 const totals = {
