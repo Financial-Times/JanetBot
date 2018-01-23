@@ -40,6 +40,11 @@ function removeDuplicatesFromSection(section) {
 
 function setPlaceholderURL(url) {
 	if(!url.startsWith('http://www.ft.com/cms/') && !url.startsWith('https://www.ft.com/video/') && !url.startsWith('http://www.ft.com/fastft/')) {
+		
+		if(url.startsWith('https://www.ft.com/content/')) {
+			return url.split('https://www.ft.com')[1]
+		}
+		
 		return url;
 	}
 
