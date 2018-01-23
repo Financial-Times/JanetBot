@@ -70,7 +70,7 @@ async function analyseContent(content, editionKey) {
 	for(let i = 0; i < content.length; ++i) {
 		//Add mock result until API ready
 		const mockResult = content[i].articleUUID.slice(-1);
-		content[i].isWoman = (mockResult === '5' || mockResult === 'e');
+		content[i].isWoman = (mockResult === 'b');
 
 		if(content[i].isWoman) {
 			totals[editionKey]['women'] += 1;
