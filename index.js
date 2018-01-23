@@ -60,6 +60,7 @@ async function getContent() {
 	results['international'] = await analyseContent(internationalImageData, 'international');
 
 	latestCheck = new Date();
+	console.log(results);
 	// console.log('INT HOMEPAGE', internationalImageData.length, internationalImageData);
 
 	// janetBot.warn(`There are ${imageData.length} images on the UK Homepage & ${internationalImageData.length} on the International homepage, including local variations.`);
@@ -68,7 +69,8 @@ async function getContent() {
 async function analyseContent(content, editionKey) {
 	for(let i = 0; i < content.length; ++i) {
 		//Add mock result until API ready
-		content[i].isWoman = (Math.floor(Math.random()*1000)%5 === 0);
+		const mockResult = content[i].articleUUID.slice(-1);
+		content[i].isWoman = (mockResult === '5' || mockResult === 'e');
 
 		if(content[i].isWoman) {
 			totals[editionKey]['women'] += 1;
