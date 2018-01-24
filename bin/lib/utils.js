@@ -5,7 +5,11 @@ function minutesToMs(mn) {
 }
 
 function extractUUID(link) {
-	return link.apiUrl.replace('http://api.ft.com/content/', '');
+	if(link !== undefined) {
+		return link.apiUrl.replace('http://api.ft.com/content/', '');	
+	}
+
+	return undefined;
 }
 
 function isOpinion(annotation) {
@@ -34,10 +38,24 @@ function removeDuplicatesFromSection(section) {
 	return section;
 }
 
+function setPlaceholderURL(url) {
+	if(!url.startsWith('http://www.ft.com/cms/') && !url.startsWith('https://www.ft.com/video/') && !url.startsWith('http://www.ft.com/fastft/')) {
+		
+		if(url.startsWith('https://www.ft.com/content/')) {
+			return url.split('https://www.ft.com')[1]
+		}
+		
+		return url;
+	}
+
+	return null;
+}
+
 module.exports = {
 	minutesToMs: minutesToMs,
 	extractUUID: extractUUID,
 	isOpinion: isOpinion,
 	dedupe: removeDuplicatesFromSection,
-	saveBase: setComparisonBase
+	saveBase: setComparisonBase,
+	getArticleURL: setPlaceholderURL
 };

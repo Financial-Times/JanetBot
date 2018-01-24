@@ -58,7 +58,7 @@ async function getImagesFor(list, layout, sectionID, edition) {
 
 	if(list !== undefined) {
 		for(let i = 0; i < indices.length; ++i) {
-			const imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
+			let imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
 
 			if(imageData.images.length) {
 				const formattedURL = imageData.images[0].binaryUrl.replace(process.env.API_IMG_URL, process.env.REPLACE_IMG_URL).concat('?source=janetbot');
@@ -68,10 +68,12 @@ async function getImagesFor(list, layout, sectionID, edition) {
 					sectionLayout: layout,
 					sectionId: sectionID,
 					articleUUID: Utils.extractUUID(list[indices[i]]),
+					articleUrl: Utils.getArticleURL(imageData.webUrl),
 					sectionPos: indices[i],
 					imageType: imageData.type,
 					originalUrl: imageData.images[0].binaryUrl,
-					formattedURL: formattedURL
+					formattedURL: formattedURL,
+					isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false
 
 				}
 				links.push(image);	
@@ -89,11 +91,11 @@ async function getTeaser(uuid) {
 			.then(data => {
 				if(data.alternativeImages && data.alternativeImages.promotionalImage) {
 
-					return {type: 'promo', images: new Array(data.alternativeImages.promotionalImage)};
+					return {type: 'promo', images: new Array(data.alternativeImages.promotionalImage), webUrl: data.webUrl};
 				}
 
 				if(data.mainImage) {
-					return {type: 'main', images: data.mainImage.members};	
+					return {type: 'main', images: data.mainImage.members, webUrl: data.webUrl};	
 				}
 
 				return {type: 'main', images: []};
@@ -136,10 +138,12 @@ async function getHeadshotsFor(list, itemCount, layout, sectionID, edition) {
 								sectionLayout: layout,
 								sectionId: sectionID,
 								articleUUID: Utils.extractUUID(list[i]),
+								articleUrl: null,
 								sectionPos: i,
 								imageType: 'headshot',
 								originalUrl: imageData._imageUrl,
-								formattedURL: imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot')
+								formattedURL: imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot'),
+								isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false
 							}
 							headShots.push(image);
 						}

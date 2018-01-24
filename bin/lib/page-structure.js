@@ -84,11 +84,11 @@ function getPositionsForLayout(layout) {
 
 	switch (layout) {
 		case 'assassination':
-			images = [0, 5, 6, 7, 8, 9, 12, 13, 14];
+			images = [0, 5, 6, 7, 8, 9, 12, 13, 14, 15, 16];
 		break;
 
 		case 'bigstory':
-			images = [0, 4, 5, 6, 7, 8, 11, 12, 13, 14];
+			images = [0, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15];
 		break;
 
 		case 'landscape':
@@ -120,7 +120,31 @@ function getPositionsForLayout(layout) {
 	return images;
 }
 
+function isTopHalf(layout, position) {
+	let isTopHalf = false;
+	switch(layout) {
+		case 'assassination':
+			isTopHalf = (position < 12);
+		break;
+
+		case 'bigstory':
+			isTopHalf = (position < 10);
+		break;
+
+		case 'landscape':
+		case 'standaloneimage':
+			isTopHalf = (position < 9);
+		break;
+		
+		default:
+			isTopHalf = false;
+	}
+
+	return isTopHalf;
+}
+
 module.exports = {
 	sections: pageStructure,
-	getPositions: getPositionsForLayout
+	getPositions: getPositionsForLayout,
+	isTopHalf: isTopHalf
 }
