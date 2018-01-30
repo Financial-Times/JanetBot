@@ -51,11 +51,37 @@ function setPlaceholderURL(url) {
 	return null;
 }
 
+function sanitiseNullValues(object) {
+	for (key in object) {
+		if(object.hasOwnProperty(key)) {
+			if(object[key] === null) {
+				object[key] = 'null';
+			}
+		}
+	}
+
+	return object;
+}
+
+function parseNullValues(object) {
+	for (key in object) {
+		if(object.hasOwnProperty(key)) {
+			if(object[key] === 'null') {
+				object[key] = null;
+			}
+		}
+	}
+
+	return object;
+}
+
 module.exports = {
 	minutesToMs: minutesToMs,
 	extractUUID: extractUUID,
 	isOpinion: isOpinion,
 	dedupe: removeDuplicatesFromSection,
 	saveBase: setComparisonBase,
-	getArticleURL: setPlaceholderURL
+	getArticleURL: setPlaceholderURL,
+	sanitiseNull: sanitiseNullValues,
+	parseNull: parseNullValues
 };
