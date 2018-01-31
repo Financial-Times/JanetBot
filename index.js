@@ -33,12 +33,11 @@ app.use((req, res, next) => {
 
 
 app.post('/feedback', (req, res) => {
-	console.log('POST came through', req.body);
 	const update = Utils.sanitiseNull(req.body);
 
 	feedbackStore.write(update, process.env.AWS_TABLE)
 	.then(response => {
-		updateResults(req.body);
+		updateResults(update);
 		return res.status(200).end();
 	})
 	.catch(err => {
@@ -69,8 +68,8 @@ function updateResults(image) {
 		return img.articleUUID === image.articleUUID && img.formattedURL === image.formattedURL;
 	});
 
-	//TODO: update resultFromAPI here
 	results[edition][toUpdate] = Utils.parseNull(image);
+	results[edition].resultFromAPI = false;
 
 	updateTotals(edition);
 }
@@ -81,7 +80,7 @@ function updateTotals(edition) {
 	let scoreTopHalf = 0;
 
 	results[edition].forEach( item => {
-		if(item.isWoman) {
+		if(item.classification === 'woman') {
 			++score;
 
 			if(item.isTopHalf) {
@@ -102,7 +101,7 @@ async function getContent() {
 	totals['uk']['images'] = imageData.length;
 	results['uk'] = await analyseContent(imageData, 'uk');
 
-
+	
 	const internationalImageData =  await homepagecontent.frontPage('international');
 	totals['international']['women'] = 0;
 	totals['international']['topHalfWomen'] = 0;	
@@ -110,7 +109,7 @@ async function getContent() {
 	results['international'] = await analyseContent(internationalImageData, 'international');
 
 	latestCheck = new Date();
-	// console.log(results);
+
 	// console.log('INT HOMEPAGE', internationalImageData.length, internationalImageData);
 
 	// janetBot.warn(`There are ${imageData.length} images on the UK Homepage & ${internationalImageData.length} on the International homepage, including local variations.`);
@@ -119,16 +118,30 @@ async function getContent() {
 async function analyseContent(content, editionKey) {
 	for(let i = 0; i < content.length; ++i) {
 		//Add mock result until API ready
-		const mockResult = content[i].articleUUID.slice(-1);
-		content[i].isWoman = (mockResult === 'b');
 
-		if(content[i].isWoman) {
-			totals[editionKey]['women'] += 1;
-			
-			if(content[i].isTopHalf) {
-				totals[editionKey]['topHalfWomen'] += 1;
+		const checkDB = await feedbackStore.scan({articleUUID: content[i].articleUUID, originalUrl: content[i].originalUrl}, process.env.AWS_TABLE)
+		.then(res => {
+			if(res.Count > 0) {
+				//TODO: deal with multiple corrections.
+				//TODO: sort array by desc correction time && use [0];
+				content[i].classification = res.Items[0].classification;
+				content[i].resultFromAPI = false;
+
+			} else {
+				const mockResult = content[i].articleUUID.slice(-1);
+				content[i].classification = (mockResult === '2')?'woman':(Math.floor(Math.random()*1000)%4 === 0)?'man':'undefined';
+				content[i].resultFromAPI = true;
 			}
-		}
+
+			if(content[i].classification === 'woman') {
+				totals[editionKey]['women'] += 1;
+				
+				if(content[i].isTopHalf) {
+					totals[editionKey]['topHalfWomen'] += 1;
+				}
+			}
+		})
+		.catch(err => console.log(err));
 	}
 
 	return content;
