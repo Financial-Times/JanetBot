@@ -18,7 +18,7 @@ let latestCheck;
 
 const homepagecontent = require('./bin/lib/homepage');
 const Utils  = require('./bin/lib/utils');
-const janetBot = require('./bin/lib/bot');
+const janetBot = require('./bin/lib/bot').init();
 const feedbackStore = require('./bin/lib/dynamo');
 const { editions } = require('./bin/lib/page-structure');
 
@@ -95,17 +95,19 @@ function updateTotals(edition) {
 }
 
 async function getContent() {
-	for(let i = 0; i < editions.length; ++ i) {	
-		const edition = editions[i];
-		const imageData =  await homepagecontent.frontPage(edition);
-		// console.log(`${edition.toUpperCase()} HOMEPAGE', imageData.length, imageData);
-		totals[edition]['women'] = 0;
-		totals[edition]['topHalfWomen'] = 0;	
-		totals[edition]['images'] = imageData.length;
-		results[edition] = await analyseContent(imageData, edition);
+	// for(let i = 0; i < editions.length; ++ i) {	
+	// 	const edition = editions[i];
+	// 	const imageData =  await homepagecontent.frontPage(edition);
+	// 	// console.log(`${edition.toUpperCase()} HOMEPAGE', imageData.length, imageData);
+	// 	totals[edition]['women'] = 0;
+	// 	totals[edition]['topHalfWomen'] = 0;	
+	// 	totals[edition]['images'] = imageData.length;
+	// 	results[edition] = await analyseContent(imageData, edition);
 
-		// janetBot.warn(`There are ${imageData.length} images on the ${edition.toUpperCase()} Homepage.`);
-	}
+	// 	// janetBot.warn(`There are ${imageData.length} images on the ${edition.toUpperCase()} Homepage.`);
+	// }
+
+	janetBot.warn("I am working in multiple channels");
 
 	latestCheck = new Date();
 }
