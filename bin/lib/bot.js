@@ -15,7 +15,7 @@ function initBots() {
 			name: 'JanetBot'
 		});
 
-		bots.push({bot: bot, channel: botSettings[i].channels[0]});
+		bots.push({bot: bot, channel: botSettings[i].channels});
 	}
 
 	return this;
@@ -23,7 +23,9 @@ function initBots() {
 
 function sendMessage(message) {
 	for(i in bots) {
-		bots[i].bot.postMessageToGroup(bots[i].channel, message, botParams);	
+		for (j in bots[i].channel) {
+			bots[i].bot.postMessageToGroup(bots[i].channel[j], message, botParams);	
+		}	
 	}
 }
 
