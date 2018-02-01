@@ -20,6 +20,7 @@ const homepagecontent = require('./bin/lib/homepage');
 const Utils  = require('./bin/lib/utils');
 const janetBot = require('./bin/lib/bot');
 const feedbackStore = require('./bin/lib/dynamo');
+const { editions } = require('./bin/lib/page-structure');
 
 const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
 
@@ -75,7 +76,7 @@ function updateResults(image) {
 }
 
 function updateTotals(edition) {
-	//TODO: what if the same image is on the international edition??
+	//TODO: what if the same image is on the other edition??
 	let score = 0;
 	let scoreTopHalf = 0;
 
@@ -94,25 +95,19 @@ function updateTotals(edition) {
 }
 
 async function getContent() {
-	const imageData =  await homepagecontent.frontPage();
-	// console.log('UK HOMEPAGE', imageData.length, imageData);
-	totals['uk']['women'] = 0;
-	totals['uk']['topHalfWomen'] = 0;	
-	totals['uk']['images'] = imageData.length;
-	results['uk'] = await analyseContent(imageData, 'uk');
+	for(let i = 0; i < editions.length; ++ i) {	
+		const edition = editions[i];
+		const imageData =  await homepagecontent.frontPage(edition);
+		// console.log(`${edition.toUpperCase()} HOMEPAGE', imageData.length, imageData);
+		totals[edition]['women'] = 0;
+		totals[edition]['topHalfWomen'] = 0;	
+		totals[edition]['images'] = imageData.length;
+		results[edition] = await analyseContent(imageData, edition);
 
-	
-	const internationalImageData =  await homepagecontent.frontPage('international');
-	totals['international']['women'] = 0;
-	totals['international']['topHalfWomen'] = 0;	
-	totals['international']['images'] = internationalImageData.length;
-	results['international'] = await analyseContent(internationalImageData, 'international');
+		// janetBot.warn(`There are ${imageData.length} images on the ${edition.toUpperCase()} Homepage.`);
+	}
 
 	latestCheck = new Date();
-
-	// console.log('INT HOMEPAGE', internationalImageData.length, internationalImageData);
-
-	// janetBot.warn(`There are ${imageData.length} images on the UK Homepage & ${internationalImageData.length} on the International homepage, including local variations.`);
 }
 
 async function analyseContent(content, editionKey) {
@@ -122,9 +117,8 @@ async function analyseContent(content, editionKey) {
 		const checkDB = await feedbackStore.scan({articleUUID: content[i].articleUUID, originalUrl: content[i].originalUrl}, process.env.AWS_TABLE)
 		.then(res => {
 			if(res.Count > 0) {
-				//TODO: deal with multiple corrections.
-				//TODO: sort array by desc correction time && use [0];
-				content[i].classification = res.Items[0].classification;
+				const items = Utils.sort(res.Items, 'correctionTime', 'desc');
+				content[i].classification = items[0].classification;
 				content[i].resultFromAPI = false;
 
 			} else {

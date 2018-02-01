@@ -75,6 +75,20 @@ function parseNullValues(object) {
 	return object;
 }
 
+function sortTime(arr, prop, dir = 'desc') {
+	if(dir === 'asc') {
+		arr.sort(function(a, b) {
+		    return parseInt(a[prop]) - parseInt(b[prop]);
+		});
+	} else {
+		arr.sort(function(a, b) {
+		    return parseInt(b[prop]) - parseInt(a[prop]);
+		});
+	}
+	
+	return arr;
+}
+
 module.exports = {
 	minutesToMs: minutesToMs,
 	extractUUID: extractUUID,
@@ -83,5 +97,6 @@ module.exports = {
 	saveBase: setComparisonBase,
 	getArticleURL: setPlaceholderURL,
 	sanitiseNull: sanitiseNullValues,
-	parseNull: parseNullValues
+	parseNull: parseNullValues,
+	sort: sortTime
 };
