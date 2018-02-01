@@ -51,11 +51,52 @@ function setPlaceholderURL(url) {
 	return null;
 }
 
+function sanitiseNullValues(object) {
+	for (key in object) {
+		if(object.hasOwnProperty(key)) {
+			if(object[key] === null) {
+				object[key] = 'null';
+			}
+		}
+	}
+
+	return object;
+}
+
+function parseNullValues(object) {
+	for (key in object) {
+		if(object.hasOwnProperty(key)) {
+			if(object[key] === 'null') {
+				object[key] = null;
+			}
+		}
+	}
+
+	return object;
+}
+
+function sortTime(arr, prop, dir = 'desc') {
+	if(dir === 'asc') {
+		arr.sort(function(a, b) {
+		    return parseInt(a[prop]) - parseInt(b[prop]);
+		});
+	} else {
+		arr.sort(function(a, b) {
+		    return parseInt(b[prop]) - parseInt(a[prop]);
+		});
+	}
+	
+	return arr;
+}
+
 module.exports = {
 	minutesToMs: minutesToMs,
 	extractUUID: extractUUID,
 	isOpinion: isOpinion,
 	dedupe: removeDuplicatesFromSection,
 	saveBase: setComparisonBase,
-	getArticleURL: setPlaceholderURL
+	getArticleURL: setPlaceholderURL,
+	sanitiseNull: sanitiseNullValues,
+	parseNull: parseNullValues,
+	sort: sortTime
 };

@@ -1,3 +1,4 @@
+const editions = ['uk', 'international'];
 const pageStructure = [
 {
 	isConcept: false,
@@ -146,5 +147,6 @@ function isTopHalf(layout, position) {
 module.exports = {
 	sections: pageStructure,
 	getPositions: getPositionsForLayout,
-	isTopHalf: isTopHalf
+	isTopHalf: isTopHalf,
+	editions: editions
 }
