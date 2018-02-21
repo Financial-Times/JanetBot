@@ -18,9 +18,10 @@ let latestCheck;
 
 const homepagecontent = require('./bin/lib/homepage');
 const Utils  = require('./bin/lib/utils');
-const janetBot = require('./bin/lib/bot');
+const janetBot = require('./bin/lib/bot').init();
 const feedbackStore = require('./bin/lib/dynamo');
 const { editions } = require('./bin/lib/page-structure');
+const { message } = require('./bin/lib/messaging');
 
 const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
 
@@ -62,9 +63,9 @@ app.get('/results/:version', basicAuth({
 app.listen(process.env.PORT || 2018);
 
 function updateResults(image) {
-	console.log('Feedback completed', image);
-
 	const edition = image.edition;
+
+	//TODO: what if the same article appears multiple times on the page?
 	const toUpdate = results[edition].findIndex(img => {
 		return img.articleUUID === image.articleUUID && img.formattedURL === image.formattedURL;
 	});
@@ -103,9 +104,9 @@ async function getContent() {
 		totals[edition]['topHalfWomen'] = 0;	
 		totals[edition]['images'] = imageData.length;
 		results[edition] = await analyseContent(imageData, edition);
-
-		// janetBot.warn(`There are ${imageData.length} images on the ${edition.toUpperCase()} Homepage.`);
 	}
+
+	janetBot.warn(message(results, totals));
 
 	latestCheck = new Date();
 }

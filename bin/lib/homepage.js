@@ -32,7 +32,6 @@ async function getAllImages(edition = 'uk') {
 			const variants = sections[i].internationalVariants;
 
 			for (let j = 0; j < variants.length; ++j) {
-				console.log(variants[j].region);
 				const sectionData = await getList(variants[j].listID, sections[i].isConcept);
 				sectionData.items = Utils.dedupe(sectionData.items);
 
@@ -127,7 +126,7 @@ async function getHeadshotsFor(list, itemCount, layout, sectionID, edition) {
 		for(let i = 1; i < itemCount; ++i) {
 			const authorData = await getAuthor(Utils.extractUUID(list[i]));
 
-			if(authorData.find(Utils.isOpinion)) {
+			if(authorData !== undefined && authorData.find(Utils.isOpinion)) {
 				for(let j = 0; j < authorData.length; ++j) {
 					if(authorData[j].predicate === 'http://www.ft.com/ontology/annotation/hasAuthor') {
 						const imageData = await getHeadshot(authorData[j].apiUrl);
