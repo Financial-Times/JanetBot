@@ -1,5 +1,6 @@
 if (process.env.NODE_ENV !== 'production') require('dotenv').config();
 const slackbot = require('slackbots');
+const scheduler = require('./scheduler');
 
 const botSettings = formatSettings();
 const bots = [];
@@ -22,10 +23,12 @@ function initBots() {
 }
 
 function sendMessage(message) {
-	for(i in bots) {
-		for (j in bots[i].channel) {
-			bots[i].bot.postMessageToGroup(bots[i].channel[j], message, botParams);	
-		}	
+	if(scheduler.onSchedule()) {
+		for(i in bots) {
+			for (j in bots[i].channel) {
+				bots[i].bot.postMessageToGroup(bots[i].channel[j], message, botParams);
+			}	
+		}
 	}
 }
 

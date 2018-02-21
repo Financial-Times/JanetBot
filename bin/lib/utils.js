@@ -89,6 +89,10 @@ function sortTime(arr, prop, dir = 'desc') {
 	return arr;
 }
 
+function padTime (time) {
+	return time.toString().padStart(2,'0');
+}
+
 module.exports = {
 	minutesToMs: minutesToMs,
 	extractUUID: extractUUID,
@@ -98,5 +102,6 @@ module.exports = {
 	getArticleURL: setPlaceholderURL,
 	sanitiseNull: sanitiseNullValues,
 	parseNull: parseNullValues,
-	sort: sortTime
+	sort: sortTime,
+	padTime: padTime
 };

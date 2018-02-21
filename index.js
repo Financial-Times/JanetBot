@@ -21,6 +21,7 @@ const Utils  = require('./bin/lib/utils');
 const janetBot = require('./bin/lib/bot').init();
 const feedbackStore = require('./bin/lib/dynamo');
 const { editions } = require('./bin/lib/page-structure');
+const { message } = require('./bin/lib/messaging');
 
 const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
 
@@ -62,9 +63,9 @@ app.get('/results/:version', basicAuth({
 app.listen(process.env.PORT || 2018);
 
 function updateResults(image) {
-	console.log('Feedback completed', image);
-
 	const edition = image.edition;
+
+	//TODO: what if the same article appears multiple times on the page?
 	const toUpdate = results[edition].findIndex(img => {
 		return img.articleUUID === image.articleUUID && img.formattedURL === image.formattedURL;
 	});
@@ -95,19 +96,17 @@ function updateTotals(edition) {
 }
 
 async function getContent() {
-	// for(let i = 0; i < editions.length; ++ i) {	
-	// 	const edition = editions[i];
-	// 	const imageData =  await homepagecontent.frontPage(edition);
-	// 	// console.log(`${edition.toUpperCase()} HOMEPAGE', imageData.length, imageData);
-	// 	totals[edition]['women'] = 0;
-	// 	totals[edition]['topHalfWomen'] = 0;	
-	// 	totals[edition]['images'] = imageData.length;
-	// 	results[edition] = await analyseContent(imageData, edition);
+	for(let i = 0; i < editions.length; ++ i) {	
+		const edition = editions[i];
+		const imageData =  await homepagecontent.frontPage(edition);
+		// console.log(`${edition.toUpperCase()} HOMEPAGE', imageData.length, imageData);
+		totals[edition]['women'] = 0;
+		totals[edition]['topHalfWomen'] = 0;	
+		totals[edition]['images'] = imageData.length;
+		results[edition] = await analyseContent(imageData, edition);
+	}
 
-	// 	// janetBot.warn(`There are ${imageData.length} images on the ${edition.toUpperCase()} Homepage.`);
-	// }
-
-	janetBot.warn("I am working in multiple channels");
+	// janetBot.warn(message(results, totals));
 
 	latestCheck = new Date();
 }
