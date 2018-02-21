@@ -106,7 +106,7 @@ async function getContent() {
 		results[edition] = await analyseContent(imageData, edition);
 	}
 
-	// janetBot.warn(message(results, totals));
+	janetBot.warn(message(results, totals));
 
 	latestCheck = new Date();
 }
