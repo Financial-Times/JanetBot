@@ -22,6 +22,7 @@ const janetBot = require('./bin/lib/bot').init();
 const feedbackStore = require('./bin/lib/dynamo');
 const { editions } = require('./bin/lib/page-structure');
 const { message } = require('./bin/lib/messaging');
+const janetBotAPI = require('./bin/lib/api');
 
 const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
 
@@ -51,9 +52,10 @@ app.post('/feedback', (req, res) => {
 app.get('/results/:version', basicAuth({
 		users: credentials
 	}), (req, res) => {
+
 	if(results[req.params.version]) {
 		res.json({'status': 200, 'content': results[req.params.version], 'total': totals[req.params.version], 'date': latestCheck});	
-	} else if(req.params.version === 'all'){
+	} else if(req.params.version === 'all' && results.uk && results.international){
 		res.json({'status': 200, 'content': results, 'total': totals, 'date': latestCheck});	
 	} else {
 		res.json({'status': 404});
@@ -65,19 +67,32 @@ app.listen(process.env.PORT || 2018);
 function updateResults(image) {
 	const edition = image.edition;
 
-	//TODO: what if the same article appears multiple times on the page?
-	const toUpdate = results[edition].findIndex(img => {
-		return img.articleUUID === image.articleUUID && img.formattedURL === image.formattedURL;
-	});
+	for(let i = 0; i < editions.length; ++i) {
+		for(let j = 0; j < results[editions[i]].length; ++j) {
+			const img = results[editions[i]][j];
+			
+			if(img.formattedURL === image.formattedURL) {
+				results[editions[i]][j].classification = image.classification;
+				results[editions[i]][j].originalResult = image.originalResult;
+				results[editions[i]][j].resultFromAPI = false;
 
-	results[edition][toUpdate] = Utils.parseNull(image);
-	results[edition].resultFromAPI = false;
+				if(image.previousResult) {
+					results[editions[i]][j].previousResult = image.previousResult;
+				}
 
-	updateTotals(edition);
+				if(img.sectionId !== image.sectionId || img.edition !== image.edition) {
+					results[editions[i]][j].syncedResult = true;
+				}
+			}
+		}
+
+		updateTotals(editions[i]);
+	}
+
+	latestCheck = new Date();
 }
 
 function updateTotals(edition) {
-	//TODO: what if the same image is on the other edition??
 	let score = 0;
 	let scoreTopHalf = 0;
 
@@ -104,27 +119,40 @@ async function getContent() {
 		totals[edition]['topHalfWomen'] = 0;	
 		totals[edition]['images'] = imageData.length;
 		results[edition] = await analyseContent(imageData, edition);
+		//TODO: check against current data
 	}
 
-	janetBot.warn(message(results, totals));
+	console.log(totals);
+
+	// janetBot.warn(message(results, totals));
 
 	latestCheck = new Date();
 }
 
 async function analyseContent(content, editionKey) {
 	for(let i = 0; i < content.length; ++i) {
-		//Add mock result until API ready
 
-		const checkDB = await feedbackStore.scan({articleUUID: content[i].articleUUID, originalUrl: content[i].originalUrl}, process.env.AWS_TABLE)
-		.then(res => {
+		const checkDB = await feedbackStore.scan({formattedURL: content[i].formattedURL}, process.env.AWS_TABLE)
+		.then(async function (res) {
 			if(res.Count > 0) {
 				const items = Utils.sort(res.Items, 'correctionTime', 'desc');
 				content[i].classification = items[0].classification;
+				content[i].originalResult = items[0].originalResult;
 				content[i].resultFromAPI = false;
 
+				if((content[i].edition !== items[0].edition) || (content[i].sectionId !== items[0].sectionId) || (content[i].articleUUID !== items[0].articleUUID)) {
+					content[i].syncedResult = true;
+				}
+
+				if(items[0].previousResult) {
+					content[i].previousResult = items[0].previousResult;
+				}
+
 			} else {
-				const mockResult = content[i].articleUUID.slice(-1);
-				content[i].classification = (mockResult === '2')?'woman':(Math.floor(Math.random()*1000)%4 === 0)?'man':'undefined';
+				const APIResult = await janetBotAPI.classify(content[i].formattedURL);
+
+				content[i].classification = APIResult.classification;
+				content[i].rawResults = APIResult.rawResults;
 				content[i].resultFromAPI = true;
 			}
 

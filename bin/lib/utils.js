@@ -1,3 +1,4 @@
+if (process.env.NODE_ENV !== 'production') require('dotenv').config();
 let topStories;
 
 function minutesToMs(mn) {
@@ -51,6 +52,19 @@ function setPlaceholderURL(url) {
 	return null;
 }
 
+async function formatImageUrl(url) {
+	let apiUrls = process.env.API_IMG_URL.split(',');
+	let format;
+
+	for (let i = 0; i < apiUrls.length; ++i) {
+		format = url.replace(apiUrls[i], process.env.REPLACE_IMG_URL);
+	}
+
+	format = format.concat('?source=janetbot&quality=low&width=500');
+
+	return format;
+}
+
 function sanitiseNullValues(object) {
 	for (key in object) {
 		if(object.hasOwnProperty(key)) {
@@ -100,6 +114,7 @@ module.exports = {
 	dedupe: removeDuplicatesFromSection,
 	saveBase: setComparisonBase,
 	getArticleURL: setPlaceholderURL,
+	formatUrl: formatImageUrl,
 	sanitiseNull: sanitiseNullValues,
 	parseNull: parseNullValues,
 	sort: sortTime,
