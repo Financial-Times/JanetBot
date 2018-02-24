@@ -25,6 +25,9 @@ const { message } = require('./bin/lib/messaging');
 const janetBotAPI = require('./bin/lib/api');
 
 const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
+let pollTimeout;
+let canPoll = true;
+let blockedPoll = false;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -111,22 +114,35 @@ function updateTotals(edition) {
 }
 
 async function getContent() {
-	for(let i = 0; i < editions.length; ++ i) {	
-		const edition = editions[i];
-		const imageData =  await homepagecontent.frontPage(edition);
-		// console.log(`${edition.toUpperCase()} HOMEPAGE', imageData.length, imageData);
-		totals[edition]['women'] = 0;
-		totals[edition]['topHalfWomen'] = 0;	
-		totals[edition]['images'] = imageData.length;
-		results[edition] = await analyseContent(imageData, edition);
-		updateTotals(edition);
+	
+	if(canPoll) {
+		canPoll = false;
+		for(let i = 0; i < editions.length; ++ i) {	
+			const edition = editions[i];
+			const imageData =  await homepagecontent.frontPage(edition);
+			// console.log(`${edition.toUpperCase()} HOMEPAGE', imageData.length, imageData);
+			totals[edition]['women'] = 0;
+			totals[edition]['topHalfWomen'] = 0;	
+			totals[edition]['images'] = imageData.length;
+			results[edition] = await analyseContent(imageData, edition);
+			updateTotals(edition);
+		}
+
+		console.log(totals);
+		// janetBot.warn(message(results, totals));
+
+		latestCheck = new Date();
+
+		canPoll = true;
+		if(blockedPoll) {
+			blockedPoll = false;
+			startPolling();
+		}
+	} else {
+		blockedPoll = true;
+		clearTimeout(pollTimeout);
 	}
-
-	console.log(totals);
-
-	// janetBot.warn(message(results, totals));
-
-	latestCheck = new Date();
+	
 }
 
 async function analyseContent(content, editionKey) {
@@ -216,5 +232,12 @@ async function inferResults(image) {
 	return false;
 }
 
-getContent();
-setInterval(getContent, pollInterval);
+
+function startPolling () {
+	getContent();
+	pollTimeout = setInterval(getContent, pollInterval);
+}
+
+startPolling();
+
+
