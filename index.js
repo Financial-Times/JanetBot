@@ -40,6 +40,9 @@ app.use((req, res, next) => {
 
 app.post('/feedback', (req, res) => {
 	const update = Utils.sanitiseNull(req.body);
+	if(process.env.REPORTING === 'on') {
+		janetBot.dev(`Correction received for ${update.formattedURL} Classification:: ${update.classification}, original classification: ${update.originalResult}`);
+	}
 
 	feedbackStore.write(update, process.env.AWS_TABLE)
 	.then(response => {
@@ -48,6 +51,7 @@ app.post('/feedback', (req, res) => {
 	})
 	.catch(err => {
 		console.log('Saving failed', err);
+		janetBot.dev(`<!channel> Correction saving error for ${update.articleUUID}`);
 		return res.status(400).end();
 	});
 });
@@ -114,7 +118,7 @@ function updateTotals(edition) {
 }
 
 async function getContent() {
-	
+
 	if(canPoll) {
 		canPoll = false;
 		for(let i = 0; i < editions.length; ++ i) {	
@@ -183,7 +187,10 @@ async function analyseContent(content, editionKey) {
 						return resultObject;
 					}
 				})
-				.catch(err => console.log(err));
+				.catch(err => {
+					janetBot.dev(`There is an issue with the DB scan for ${content[i].articleUUID}' image: ${content[i].formattedURL}`)
+					console.log(err);
+				});
 
 			Object.assign(content[i], checkDB);
 		}

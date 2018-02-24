@@ -26,9 +26,24 @@ function sendMessage(message) {
 	if(scheduler.onSchedule()) {
 		for(i in bots) {
 			for (j in bots[i].channel) {
-				bots[i].bot.postMessageToGroup(bots[i].channel[j], message, botParams);
+				const channel = bots[i].channel[j];
+
+				if(channel !== 'janetbot-dev') {
+					bots[i].bot.postMessageToGroup(bots[i].channel[j], message, botParams);	
+				}
 			}	
 		}
+	}
+}
+
+function sendMessageToDev(message) {
+	for(i in bots) {
+		for (j in bots[i].channel) {
+			const channel = bots[i].channel[j];
+			if(channel === 'janetbot-dev') {
+				bots[i].bot.postMessageToGroup(bots[i].channel[j], message, botParams);	
+			}
+		}	
 	}
 }
 
@@ -45,5 +60,6 @@ function formatSettings() {
 
 module.exports = {
 	init: initBots,
-	warn: sendMessage
+	warn: sendMessage,
+	dev: sendMessageToDev
 }
