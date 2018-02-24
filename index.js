@@ -119,7 +119,7 @@ async function getContent() {
 		totals[edition]['topHalfWomen'] = 0;	
 		totals[edition]['images'] = imageData.length;
 		results[edition] = await analyseContent(imageData, edition);
-		//TODO: check against current data
+		updateTotals(edition);
 	}
 
 	console.log(totals);
@@ -132,42 +132,88 @@ async function getContent() {
 async function analyseContent(content, editionKey) {
 	for(let i = 0; i < content.length; ++i) {
 
-		const checkDB = await feedbackStore.scan({formattedURL: content[i].formattedURL}, process.env.AWS_TABLE)
-		.then(async function (res) {
-			if(res.Count > 0) {
-				const items = Utils.sort(res.Items, 'correctionTime', 'desc');
-				content[i].classification = items[0].classification;
-				content[i].originalResult = items[0].originalResult;
-				content[i].resultFromAPI = false;
+		const checkExisting = await inferResults(content[i]);
 
-				if((content[i].edition !== items[0].edition) || (content[i].sectionId !== items[0].sectionId) || (content[i].articleUUID !== items[0].articleUUID)) {
-					content[i].syncedResult = true;
-				}
+		if(checkExisting) {
+			Object.assign(content[i], checkExisting);
+		} else {
+			const checkDB = await feedbackStore.scan({formattedURL: content[i].formattedURL}, process.env.AWS_TABLE)
+				.then(async function (res) {
+					if(res.Count > 0) {
+						const items = Utils.sort(res.Items, 'correctionTime', 'desc');
+						const DBResult = {};
+						DBResult.classification = items[0].classification;
+						DBResult.originalResult = items[0].originalResult;
+						DBResult.resultFromAPI = false;
 
-				if(items[0].previousResult) {
-					content[i].previousResult = items[0].previousResult;
-				}
+						if((content[i].edition !== items[0].edition) || (content[i].sectionId !== items[0].sectionId) || (content[i].articleUUID !== items[0].articleUUID)) {
+							DBResult.syncedResult = true;
+						}
 
-			} else {
-				const APIResult = await janetBotAPI.classify(content[i].formattedURL);
+						if(items[0].previousResult) {
+							DBResult.previousResult = items[0].previousResult;
+						}
 
-				content[i].classification = APIResult.classification;
-				content[i].rawResults = APIResult.rawResults;
-				content[i].resultFromAPI = true;
-			}
+						return DBResult;
 
-			if(content[i].classification === 'woman') {
-				totals[editionKey]['women'] += 1;
-				
-				if(content[i].isTopHalf) {
-					totals[editionKey]['topHalfWomen'] += 1;
-				}
-			}
-		})
-		.catch(err => console.log(err));
+					} else {
+						const APIResult = await janetBotAPI.classify(content[i].formattedURL);
+
+						const resultObject = {};
+						resultObject.classification = APIResult.classification;
+						resultObject.rawResults = APIResult.rawResults;
+						resultObject.resultFromAPI = true;
+
+						return resultObject;
+					}
+				})
+				.catch(err => console.log(err));
+
+			Object.assign(content[i], checkDB);
+		}
 	}
 
 	return content;
+}
+
+async function inferResults(image) {
+	if(results.uk !== undefined) {
+		let existing = results.uk;
+
+		if(results.international !== undefined) {
+			existing = existing.concat(results.international);
+		}
+		const match = existing.findIndex(img => {
+			return img.formattedURL === image.formattedURL;
+		});
+
+		if(match !== -1) {
+			const result = {};
+			const data = existing[match];
+
+			result.classification = data.classification;
+			result.resultFromAPI = data.resultFromAPI;
+			result.inferredResult = true;
+
+			if(data.originalResult) {
+				result.originalResult = data.originalResult;
+			}
+
+			if(data.previousResult) {
+				result.previousResult = data.previousResult;
+			}
+
+			if(data.rawResults) {
+				result.rawResults = data.rawResults;
+			}
+
+			return result;
+		}
+
+		return false;
+	}
+
+	return false;
 }
 
 getContent();
