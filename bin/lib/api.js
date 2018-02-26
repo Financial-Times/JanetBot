@@ -1,7 +1,7 @@
 if (process.env.NODE_ENV !== 'production') require('dotenv').config();
 const fetch = require('node-fetch');
 const janetBot = require('./bot');
-const { msToMinSec } = require('./Utils');
+const { msToMinSec } = require('./utils');
 
 const apiThresholds = {
 	analysis: 10,
