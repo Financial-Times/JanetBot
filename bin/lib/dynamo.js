@@ -163,10 +163,9 @@ function formatQuery(item, table) {
 		TableName: table
 	}
 
-	const filter = `${Object.entries(item)[0][0]} = :a AND ${Object.entries(item)[1][0]} = :b`;
+	const filter = `${Object.entries(item)[0][0]} = :a`;
 	const values =  {
-		":a": Object.entries(item)[0][1],
-		":b": Object.entries(item)[1][1]
+		":a": Object.entries(item)[0][1]
 	};
 
 	formattedQuery.FilterExpression = filter;

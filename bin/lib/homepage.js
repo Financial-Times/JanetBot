@@ -60,7 +60,7 @@ async function getImagesFor(list, layout, sectionID, edition) {
 			let imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
 
 			if(imageData.images.length) {
-				const formattedURL = imageData.images[0].binaryUrl.replace(process.env.API_IMG_URL, process.env.REPLACE_IMG_URL).concat('?source=janetbot');
+				const formattedURL = await Utils.formatUrl(imageData.images[0].binaryUrl);
 				const image = {
 					timestamp: new Date().getTime(),
 					edition: edition,

@@ -22,8 +22,12 @@ const janetBot = require('./bin/lib/bot').init();
 const feedbackStore = require('./bin/lib/dynamo');
 const { editions } = require('./bin/lib/page-structure');
 const { message } = require('./bin/lib/messaging');
+const janetBotAPI = require('./bin/lib/api');
 
 const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
+let pollTimeout;
+let canPoll = true;
+let blockedPoll = false;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -36,6 +40,9 @@ app.use((req, res, next) => {
 
 app.post('/feedback', (req, res) => {
 	const update = Utils.sanitiseNull(req.body);
+	if(process.env.REPORTING === 'on') {
+		janetBot.dev(`Correction received for ${update.formattedURL} Classification:: ${update.classification}, original classification: ${update.originalResult}`);
+	}
 
 	feedbackStore.write(update, process.env.AWS_TABLE)
 	.then(response => {
@@ -44,6 +51,7 @@ app.post('/feedback', (req, res) => {
 	})
 	.catch(err => {
 		console.log('Saving failed', err);
+		janetBot.dev(`<!channel> Correction saving error for ${update.articleUUID}`);
 		return res.status(400).end();
 	});
 });
@@ -51,9 +59,10 @@ app.post('/feedback', (req, res) => {
 app.get('/results/:version', basicAuth({
 		users: credentials
 	}), (req, res) => {
+
 	if(results[req.params.version]) {
 		res.json({'status': 200, 'content': results[req.params.version], 'total': totals[req.params.version], 'date': latestCheck});	
-	} else if(req.params.version === 'all'){
+	} else if(req.params.version === 'all' && results.uk && results.international){
 		res.json({'status': 200, 'content': results, 'total': totals, 'date': latestCheck});	
 	} else {
 		res.json({'status': 404});
@@ -65,19 +74,32 @@ app.listen(process.env.PORT || 2018);
 function updateResults(image) {
 	const edition = image.edition;
 
-	//TODO: what if the same article appears multiple times on the page?
-	const toUpdate = results[edition].findIndex(img => {
-		return img.articleUUID === image.articleUUID && img.formattedURL === image.formattedURL;
-	});
+	for(let i = 0; i < editions.length; ++i) {
+		for(let j = 0; j < results[editions[i]].length; ++j) {
+			const img = results[editions[i]][j];
+			
+			if(img.formattedURL === image.formattedURL) {
+				results[editions[i]][j].classification = image.classification;
+				results[editions[i]][j].originalResult = image.originalResult;
+				results[editions[i]][j].resultFromAPI = false;
 
-	results[edition][toUpdate] = Utils.parseNull(image);
-	results[edition].resultFromAPI = false;
+				if(image.previousResult) {
+					results[editions[i]][j].previousResult = image.previousResult;
+				}
 
-	updateTotals(edition);
+				if(img.sectionId !== image.sectionId || img.edition !== image.edition) {
+					results[editions[i]][j].syncedResult = true;
+				}
+			}
+		}
+
+		updateTotals(editions[i]);
+	}
+
+	latestCheck = new Date();
 }
 
 function updateTotals(edition) {
-	//TODO: what if the same image is on the other edition??
 	let score = 0;
 	let scoreTopHalf = 0;
 
@@ -96,51 +118,133 @@ function updateTotals(edition) {
 }
 
 async function getContent() {
-	for(let i = 0; i < editions.length; ++ i) {	
-		const edition = editions[i];
-		const imageData =  await homepagecontent.frontPage(edition);
-		// console.log(`${edition.toUpperCase()} HOMEPAGE', imageData.length, imageData);
-		totals[edition]['women'] = 0;
-		totals[edition]['topHalfWomen'] = 0;	
-		totals[edition]['images'] = imageData.length;
-		results[edition] = await analyseContent(imageData, edition);
+
+	if(canPoll) {
+		canPoll = false;
+		for(let i = 0; i < editions.length; ++ i) {	
+			const edition = editions[i];
+			const imageData =  await homepagecontent.frontPage(edition);
+			// console.log(`${edition.toUpperCase()} HOMEPAGE', imageData.length, imageData);
+			totals[edition]['women'] = 0;
+			totals[edition]['topHalfWomen'] = 0;	
+			totals[edition]['images'] = imageData.length;
+			results[edition] = await analyseContent(imageData, edition);
+			updateTotals(edition);
+		}
+
+		console.log(totals);
+		// janetBot.warn(message(results, totals));
+
+		latestCheck = new Date();
+
+		canPoll = true;
+		if(blockedPoll) {
+			blockedPoll = false;
+			startPolling();
+		}
+	} else {
+		blockedPoll = true;
+		clearTimeout(pollTimeout);
 	}
-
-	janetBot.warn(message(results, totals));
-
-	latestCheck = new Date();
+	
 }
 
 async function analyseContent(content, editionKey) {
 	for(let i = 0; i < content.length; ++i) {
-		//Add mock result until API ready
 
-		const checkDB = await feedbackStore.scan({articleUUID: content[i].articleUUID, originalUrl: content[i].originalUrl}, process.env.AWS_TABLE)
-		.then(res => {
-			if(res.Count > 0) {
-				const items = Utils.sort(res.Items, 'correctionTime', 'desc');
-				content[i].classification = items[0].classification;
-				content[i].resultFromAPI = false;
+		const checkExisting = await inferResults(content[i]);
 
-			} else {
-				const mockResult = content[i].articleUUID.slice(-1);
-				content[i].classification = (mockResult === '2')?'woman':(Math.floor(Math.random()*1000)%4 === 0)?'man':'undefined';
-				content[i].resultFromAPI = true;
-			}
+		if(checkExisting) {
+			Object.assign(content[i], checkExisting);
+		} else {
+			const checkDB = await feedbackStore.scan({formattedURL: content[i].formattedURL}, process.env.AWS_TABLE)
+				.then(async function (res) {
+					if(res.Count > 0) {
+						const items = Utils.sort(res.Items, 'correctionTime', 'desc');
+						const DBResult = {};
+						DBResult.classification = items[0].classification;
+						DBResult.originalResult = items[0].originalResult;
+						DBResult.resultFromAPI = false;
 
-			if(content[i].classification === 'woman') {
-				totals[editionKey]['women'] += 1;
-				
-				if(content[i].isTopHalf) {
-					totals[editionKey]['topHalfWomen'] += 1;
-				}
-			}
-		})
-		.catch(err => console.log(err));
+						if((content[i].edition !== items[0].edition) || (content[i].sectionId !== items[0].sectionId) || (content[i].articleUUID !== items[0].articleUUID)) {
+							DBResult.syncedResult = true;
+						}
+
+						if(items[0].previousResult) {
+							DBResult.previousResult = items[0].previousResult;
+						}
+
+						return DBResult;
+
+					} else {
+						const APIResult = await janetBotAPI.classify(content[i].formattedURL);
+
+						const resultObject = {};
+						resultObject.classification = APIResult.classification;
+						resultObject.rawResults = APIResult.rawResults;
+						resultObject.resultFromAPI = true;
+
+						return resultObject;
+					}
+				})
+				.catch(err => {
+					janetBot.dev(`There is an issue with the DB scan for ${content[i].articleUUID}' image: ${content[i].formattedURL}`)
+					console.log(err);
+				});
+
+			Object.assign(content[i], checkDB);
+		}
 	}
 
 	return content;
 }
 
-getContent();
-setInterval(getContent, pollInterval);
+async function inferResults(image) {
+	if(results.uk !== undefined) {
+		let existing = results.uk;
+
+		if(results.international !== undefined) {
+			existing = existing.concat(results.international);
+		}
+		const match = existing.findIndex(img => {
+			return img.formattedURL === image.formattedURL;
+		});
+
+		if(match !== -1) {
+			const result = {};
+			const data = existing[match];
+
+			result.classification = data.classification;
+			result.resultFromAPI = data.resultFromAPI;
+			result.inferredResult = true;
+
+			if(data.originalResult) {
+				result.originalResult = data.originalResult;
+			}
+
+			if(data.previousResult) {
+				result.previousResult = data.previousResult;
+			}
+
+			if(data.rawResults) {
+				result.rawResults = data.rawResults;
+			}
+
+			return result;
+		}
+
+		return false;
+	}
+
+	return false;
+}
+
+
+function startPolling () {
+	getContent();
+	pollTimeout = setInterval(getContent, pollInterval);
+}
+
+startPolling();
+
+
