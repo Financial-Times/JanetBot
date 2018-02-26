@@ -100,33 +100,45 @@ function updateResults(image) {
 }
 
 function updateTotals(edition) {
-	let score = 0;
-	let scoreTopHalf = 0;
+	let wScore = 0;
+	let wScoreTopHalf = 0;
+	let mScore = 0;
+	let mScoreTopHalf = 0;
 
 	results[edition].forEach( item => {
 		if(item.classification === 'woman') {
-			++score;
+			++wScore;
 
 			if(item.isTopHalf) {
-				++scoreTopHalf;
+				++wScoreTopHalf;
+			}
+		} else if(item.classification === 'man') {
+			++mScore;
+
+			if(item.isTopHalf) {
+				++mScoreTopHalf;
 			}
 		}
 	});
 
-	totals[edition]['women'] = score;
-	totals[edition]['topHalfWomen'] = scoreTopHalf;
+	totals[edition]['women'] = wScore;
+	totals[edition]['topHalfWomen'] = wScoreTopHalf;
+	totals[edition]['men'] = mScore;
+	totals[edition]['topHalfMen'] = mScoreTopHalf;
 }
 
 async function getContent() {
 
 	if(canPoll) {
 		canPoll = false;
-		for(let i = 0; i < editions.length; ++ i) {	
+		for(let i = 0; i < editions.length; ++i) {	
 			const edition = editions[i];
 			const imageData =  await homepagecontent.frontPage(edition);
 			// console.log(`${edition.toUpperCase()} HOMEPAGE', imageData.length, imageData);
 			totals[edition]['women'] = 0;
-			totals[edition]['topHalfWomen'] = 0;	
+			totals[edition]['topHalfWomen'] = 0;
+			totals[edition]['men'] = 0;
+			totals[edition]['topHalfMen'] = 0;	
 			totals[edition]['images'] = imageData.length;
 			results[edition] = await analyseContent(imageData, edition);
 			updateTotals(edition);
