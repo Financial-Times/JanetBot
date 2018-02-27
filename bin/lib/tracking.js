@@ -5,6 +5,8 @@ function logToSpoor(data) {
 		return Promise.resolve({'status' : 'Failed. Invalid data passed.'});
 	}
 
+	//NB: The User-Agent param must be whitelisted by the spoor team
+
 	return fetch('https://spoor-api.ft.com/ingest', {
 			method: 'POST',
 			headers: {
