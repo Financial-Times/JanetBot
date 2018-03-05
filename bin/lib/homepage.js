@@ -142,8 +142,9 @@ async function getHeadshotsFor(list, itemCount, layout, sectionID, edition) {
 								imageType: 'headshot',
 								originalUrl: imageData._imageUrl,
 								formattedURL: imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot'),
-								isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false
+								isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, i):false
 							}
+
 							headShots.push(image);
 						}
 					}
