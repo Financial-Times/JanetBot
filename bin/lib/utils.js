@@ -14,7 +14,7 @@ function msToMinSec(ms) {
 
 function extractUUID(link) {
 	if(link !== undefined) {
-		return link.apiUrl.replace('http://api.ft.com/content/', '');	
+		return link.apiUrl.replace('http://api.ft.com/content/', '').replace('http://api.ft.com/things/', '');	
 	}
 
 	return undefined;
