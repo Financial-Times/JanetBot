@@ -141,7 +141,7 @@ async function getHeadshotsFor(list, itemCount, layout, sectionID, edition) {
 								sectionPos: i,
 								imageType: 'headshot',
 								originalUrl: imageData._imageUrl,
-								formattedURL: imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot'),
+								formattedURL: imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot&width=500'),
 								isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, i):false
 							}
 

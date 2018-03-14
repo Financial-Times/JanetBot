@@ -9,7 +9,6 @@ const apiThresholds = {
 };
 
 async function getClassification(imageUrl) {
-	console.log(encodeURIComponent(imageUrl));
 	const postData = `image=${encodeURIComponent(imageUrl)}`;
 
 	const options = {
@@ -29,7 +28,7 @@ async function getClassification(imageUrl) {
 				if(res.ok) {
 					return res.json();
 				} else {
-					janetBot.dev(`<!channel> There was an issue with the API for ${imageUrl}; ERROR: ${res.status}`);
+					janetBot.dev(`<!channel> There was an issue with the API for ${imageUrl} -- ERROR: ${res.status}`);
 				}
 
 				return undefined;
