@@ -9,7 +9,8 @@ const apiThresholds = {
 };
 
 async function getClassification(imageUrl) {
-	const postData = `image=${imageUrl}`;
+	console.log(encodeURIComponent(imageUrl));
+	const postData = `image=${encodeURIComponent(imageUrl)}`;
 
 	const options = {
 		headers: {
