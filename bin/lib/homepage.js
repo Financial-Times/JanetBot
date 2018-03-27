@@ -60,7 +60,8 @@ async function getImagesFor(list, layout, sectionID, edition) {
 			let imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
 
 			if(imageData.images.length) {
-				const formattedURL = await Utils.formatUrl(imageData.images[0].binaryUrl);
+				const formattedURL = await Utils.formatUrl(imageData.images[0]);
+
 				const image = {
 					timestamp: new Date().getTime(),
 					edition: edition,
