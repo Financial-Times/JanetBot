@@ -60,14 +60,8 @@ function setPlaceholderURL(url) {
 }
 
 async function formatImageUrl(url) {
-	let apiUrls = process.env.API_IMG_URL.split(',');
-	let format;
-
-	for (let i = 0; i < apiUrls.length; ++i) {
-		format = url.replace(apiUrls[i], process.env.REPLACE_IMG_URL);
-	}
-
-	format = format.concat('?source=janetbot&quality=low&width=500');
+	const uuid = extractUUID(url);
+	const format = `${process.env.REPLACE_IMG_URL}${uuid}?source=janetbot&quality=low&width=500`;
 
 	return format;
 }
