@@ -14,7 +14,7 @@ function extractUUID(link) {
 }
 
 function isOpinion(annotation) {
-	return ((annotation.predicate === 'http://www.ft.com/ontology/classification/isClassifiedBy' || annotation.predicate === 'http://www.ft.com/ontology/classification/isPrimarilyClassifiedBy') && annotation.prefLabel === 'Opinion');
+	return (((annotation.predicate === 'http://www.ft.com/ontology/classification/isClassifiedBy' && annotation.type === 'GENRE') || annotation.predicate === 'http://www.ft.com/ontology/classification/isPrimarilyClassifiedBy') && annotation.prefLabel === 'Opinion');
 }
 
 function setComparisonBase(base) {
