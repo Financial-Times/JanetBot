@@ -5,13 +5,6 @@ function minutesToMs(mn) {
 	return mn*60*1000;
 }
 
-function msToMinSec(ms) {
-	const min = Math.round(ms/1000/60);
-	const sec = (ms/1000)%60;
-
-	return `${min} minutes ${Math.round(sec)} seconds`;
-}
-
 function extractUUID(link) {
 	if(link !== undefined) {
 		return link.apiUrl.replace('http://api.ft.com/content/', '').replace('http://api.ft.com/things/', '');	
@@ -110,7 +103,6 @@ function padTime (time) {
 
 module.exports = {
 	minutesToMs: minutesToMs,
-	msToMinSec: msToMinSec,
 	extractUUID: extractUUID,
 	isOpinion: isOpinion,
 	dedupe: removeDuplicatesFromSection,

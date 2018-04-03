@@ -22,7 +22,7 @@ const janetBot = require('./bin/lib/bot').init();
 const feedbackStore = require('./bin/lib/dynamo');
 const { editions } = require('./bin/lib/page-structure');
 const { message } = require('./bin/lib/messaging');
-const janetBotAPI = require('./bin/lib/api');
+const janetBotAPI = require('./bin/lib/rekognition');
 
 const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
 let pollTimeout;
@@ -124,7 +124,7 @@ async function getContent() {
 		for(let i = 0; i < editions.length; ++ i) {	
 			const edition = editions[i];
 			const imageData =  await homepagecontent.frontPage(edition);
-			// console.log(`${edition.toUpperCase()} HOMEPAGE', imageData.length, imageData);
+			// console.log(`${edition.toUpperCase()} HOMEPAGE`, imageData.length, imageData);
 			totals[edition]['women'] = 0;
 			totals[edition]['topHalfWomen'] = 0;	
 			totals[edition]['images'] = imageData.length;
