@@ -2,6 +2,7 @@ if (process.env.NODE_ENV !== 'production') require('dotenv').config();
 const fetch = require('node-fetch');
 const AWS = require('aws-sdk');
 const Rekognition = new AWS.Rekognition();
+const janetBot = require('./bot');
 
 const confidenceThreshold = 90;
 const widthThreshold = 0.1;
@@ -9,6 +10,7 @@ const widthThreshold = 0.1;
 //TODO: add JB warnings
 
 async function getClassification(imageUrl) {
+	console.log('IMAGE::', imageUrl);
 	const imageToAnalyse = await getImage(imageUrl);
 
 	const params = {
@@ -18,7 +20,6 @@ async function getClassification(imageUrl) {
 		Attributes: ['ALL']
 	};
 
-	console.log('IMAGE::', imageUrl);
 	const results = await rekognise(params);
 	return results;
 }
@@ -68,13 +69,14 @@ async function getImage(img) {
 				if(res.status === 200) {
 					return res.buffer();
 				} else {
-					throw Error(res);
+					throw Error(res.status);
 				}
 			})
 			.then(buffer => {
 				return buffer;
 			})
 			.catch(err => {
+				janetBot.dev(`<!channel> There was an issue retrieving the image ${img} -- ERROR: ${err}`);
 				throw err;
 			});
 }

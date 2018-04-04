@@ -121,7 +121,7 @@ async function getContent() {
 
 	if(canPoll) {
 		canPoll = false;
-		for(let i = 0; i < editions.length; ++ i) {	
+		for(let i = 0; i < editions.length; ++ i) {
 			const edition = editions[i];
 			const imageData =  await homepagecontent.frontPage(edition);
 			// console.log(`${edition.toUpperCase()} HOMEPAGE`, imageData.length, imageData);
@@ -131,7 +131,7 @@ async function getContent() {
 			results[edition] = await analyseContent(imageData, edition);
 			updateTotals(edition);
 		}
-
+		
 		console.log(totals);
 		// janetBot.warn(message(results, totals));
 

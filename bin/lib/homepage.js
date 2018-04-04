@@ -76,6 +76,7 @@ async function getImagesFor(list, layout, sectionID, edition) {
 					isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false
 
 				}
+				
 				links.push(image);	
 			}
 		}
