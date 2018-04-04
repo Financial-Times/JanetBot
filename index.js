@@ -131,7 +131,7 @@ async function getContent() {
 			results[edition] = await analyseContent(imageData, edition);
 			updateTotals(edition);
 		}
-		
+
 		console.log(totals);
 		// janetBot.warn(message(results, totals));
 
@@ -178,13 +178,8 @@ async function analyseContent(content, editionKey) {
 
 					} else {
 						const APIResult = await janetBotAPI.classify(content[i].formattedURL);
-
-						const resultObject = {};
-						resultObject.classification = APIResult.classification;
-						resultObject.rawResults = APIResult.rawResults;
-						resultObject.resultFromAPI = true;
-
-						return resultObject;
+						APIResult.resultFromAPI = true;
+						return APIResult;
 					}
 				})
 				.catch(err => {

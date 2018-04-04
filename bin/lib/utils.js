@@ -55,15 +55,34 @@ function setPlaceholderURL(url) {
 async function formatImageUrl(url) {
 	const isUPPImage = checkUrl(url.binaryUrl);
 	let format;
-	
+
 	if(isUPPImage) {
 		const uuid = extractUUID(url);
-		format = `${process.env.IMAGE_SERVICE_URL}${process.env.REPLACE_IMG_URL}${uuid}?source=janetbot&width=800`;
+		format = `${process.env.IMAGE_SERVICE_URL}${process.env.REPLACE_IMG_URL}${uuid}`;
 	} else {
-		format = `${process.env.IMAGE_SERVICE_URL}${encodeURIComponent(url.binaryUrl)}?source=janetbot`;
+		format = `${process.env.IMAGE_SERVICE_URL}${encodeURIComponent(url.binaryUrl)}`;
 	}
 
-	return format;
+	return format.concat('?source=janetbot&width=800');
+}
+
+function getSmallerImage(image, tries = 0) {
+	let newUrl; 
+	if(tries < 1) {
+		newUrl = image.concat('&quality=low');
+	} else {
+		const baseUrl = image.split('&width=');
+		let newSize = '500';
+
+		if(baseUrl[1].startsWith('500')) {
+			newSize = '300';
+		}
+
+		newUrl = baseUrl[0].concat(`&width=${newSize}&quality=low`);
+	}
+
+	++tries;
+	return { url: newUrl, retries: tries};
 }
 
 function checkUrl(url) {
@@ -124,5 +143,6 @@ module.exports = {
 	sanitiseNull: sanitiseNullValues,
 	parseNull: parseNullValues,
 	sort: sortTime,
-	padTime: padTime
+	padTime: padTime,
+	getSmallerImage: getSmallerImage
 };

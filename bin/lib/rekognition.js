@@ -3,7 +3,10 @@ const fetch = require('node-fetch');
 const AWS = require('aws-sdk');
 const Rekognition = new AWS.Rekognition();
 const janetBot = require('./bot');
+const Utils  = require('./utils');
 
+const imageSizeLimit = 5242880; //5MB
+const MAX_RETRIES = 2;
 const confidenceThreshold = 90;
 const widthThreshold = 0.1;
 
@@ -13,15 +16,19 @@ async function getClassification(imageUrl) {
 	console.log('IMAGE::', imageUrl);
 	const imageToAnalyse = await getImage(imageUrl);
 
+	if(imageToAnalyse instanceof Error) {
+		return {};
+	}
+
 	const params = {
 		Image: {
-			Bytes: imageToAnalyse
+			Bytes: imageToAnalyse.buffer
 		},
 		Attributes: ['ALL']
 	};
 
 	const results = await rekognise(params);
-	return results;
+	return Object.assign({formattedUrl: imageToAnalyse.url}, results);
 }
 
 async function rekognise(params) {
@@ -64,7 +71,15 @@ async function rekognise(params) {
 }
 
 async function getImage(img) {
-	return fetch(img)
+	const image = img.url?img.url:img;
+
+	if(img.retries === MAX_RETRIES) {
+		//TODO: warn about this image in JB dev
+		console.log(`Image is too big ${image}`);
+		return new Error(`Image is too big ${image}`);
+	}
+
+	return fetch(image)
 			.then(res => {
 				if(res.status === 200) {
 					return res.buffer();
@@ -73,7 +88,12 @@ async function getImage(img) {
 				}
 			})
 			.then(buffer => {
-				return buffer;
+				if(buffer.byteLength < imageSizeLimit) {
+					return {buffer: buffer, url: image};
+				} else {
+					const smallImg = Utils.getSmallerImage(image, img.retries | 0);
+					return getImage(smallImg);
+				}
 			})
 			.catch(err => {
 				janetBot.dev(`<!channel> There was an issue retrieving the image ${img} -- ERROR: ${err}`);

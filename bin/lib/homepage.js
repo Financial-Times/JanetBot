@@ -78,7 +78,6 @@ async function getImagesFor(list, layout, sectionID, edition) {
 					originalUrl: imageData.images[0].binaryUrl,
 					formattedURL: formattedURL,
 					isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false
-
 				}
 
 				links.push(image);	
