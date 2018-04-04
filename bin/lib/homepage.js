@@ -13,8 +13,12 @@ async function getAllImages(edition = 'uk') {
 			const sectionData = await getList(sections[i][edition], sections[i].isConcept);
 			let layout = sectionData.hasOwnProperty('layoutHint')?sectionData.layoutHint:sections[i].layout;
 
-			if(edition === 'international' && i === 0) {
+			if(i === 0) {
 				Utils.saveBase(sectionData.items);
+			}
+
+			if(layout === 'regionalnews' || layout === 'technology') {
+				sectionData.items = Utils.dedupe(sectionData.items);
 			}
 			
 			const sectionImages = await getImagesFor(sectionData.items, layout, i, edition);
@@ -76,7 +80,7 @@ async function getImagesFor(list, layout, sectionID, edition) {
 					isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false
 
 				}
-				
+
 				links.push(image);	
 			}
 		}
