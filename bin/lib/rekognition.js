@@ -8,9 +8,7 @@ const Utils  = require('./utils');
 const imageSizeLimit = 5242880; //5MB
 const MAX_RETRIES = 2;
 const confidenceThreshold = 90;
-const widthThreshold = 0.1;
-
-//TODO: add JB warnings
+const widthThreshold = 0.05;
 
 async function getClassification(imageUrl) {
 	console.log('IMAGE::', imageUrl);
@@ -27,11 +25,11 @@ async function getClassification(imageUrl) {
 		Attributes: ['ALL']
 	};
 
-	const results = await rekognise(params);
-	return Object.assign({formattedUrl: imageToAnalyse.url}, results);
+	const results = await rekognise(params, imageToAnalyse.url);
+	return results;
 }
 
-async function rekognise(params) {
+async function rekognise(params, imageUrl) {
 	return new Promise((resolve, reject) => {
 		Rekognition.detectFaces(params, (err, data) => {
 			if(err) {
@@ -42,22 +40,24 @@ async function rekognise(params) {
 			else {
 				const details = data.FaceDetails;
 				const genders = { man: 0, woman: 0 };
-				const result = { rawResults: JSON.stringify(details)};
-
-				//TODO: check Bounding box ratio.
+				const result = { formattedUrl: imageUrl, rawResults: JSON.stringify(details)};
 
 				for(let i = 0; i < details.length; ++i) {
-					if(details[i].Gender.Confidence > confidenceThreshold) {
+					if(details[i].BoundingBox.Width >= widthThreshold) {
 						if(details[i].Gender.Value === 'Male') {
 							++ genders.man;
 						} else if(details[i].Gender.Value === 'Female') {
 							++ genders.woman;
 						} else {
-							console.log('Unhandled gender:', details[i].Gender);
+							janetBot.dev(`<!channel> Unhandled gender ${JSON.stringify(details[i].Gender)} for ${imageUrl}`);
 						}
 					} else {
-						console.log('Low confidence gender', details[i].Gender);
-						//TODO: analyse logs, but warn of low ratio, low confidence.
+						//TODO: tracking only? -- can be annoying if multiple small faces in image
+						janetBot.dev(`Small face ratio ${details[i].BoundingBox.Width}, skipped for ${imageUrl}`);
+					}
+
+					if(details[i].Gender.Confidence < confidenceThreshold) {
+						janetBot.dev(`Low confidence classification ${JSON.stringify(details[i].Gender)} for ${imageUrl}`);
 					}
 				}
 
@@ -74,9 +74,8 @@ async function getImage(img) {
 	const image = img.url?img.url:img;
 
 	if(img.retries === MAX_RETRIES) {
-		//TODO: warn about this image in JB dev
-		console.log(`Image is too big ${image}`);
-		return new Error(`Image is too big ${image}`);
+		janetBot.dev(`<!channel> Image is still too big after retries ${image}`);
+		return new Error();
 	}
 
 	return fetch(image)
@@ -96,7 +95,7 @@ async function getImage(img) {
 				}
 			})
 			.catch(err => {
-				janetBot.dev(`<!channel> There was an issue retrieving the image ${img} -- ERROR: ${err}`);
+				janetBot.dev(`<!channel> There was an issue retrieving the image ${image} -- ERROR: ${err}`);
 				throw err;
 			});
 }
