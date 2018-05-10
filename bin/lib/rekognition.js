@@ -8,7 +8,7 @@ const Utils  = require('./utils');
 const imageSizeLimit = 5242880; //5MB
 const MAX_RETRIES = 2;
 const confidenceThreshold = 90;
-const widthThreshold = 0.05;
+const widthThreshold = 0.04;
 
 async function getClassification(imageUrl) {
 	console.log('IMAGE::', imageUrl);
@@ -43,7 +43,7 @@ async function rekognise(params, imageUrl) {
 				const result = { formattedUrl: imageUrl, rawResults: JSON.stringify(details)};
 
 				for(let i = 0; i < details.length; ++i) {
-					if(details[i].BoundingBox.Width >= widthThreshold) {
+					if(details[i].BoundingBox.Width > widthThreshold) {
 						if(details[i].Gender.Value === 'Male') {
 							++ genders.man;
 						} else if(details[i].Gender.Value === 'Female') {
