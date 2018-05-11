@@ -54,6 +54,7 @@ async function getAllImages(edition = 'uk') {
 async function getImagesFor(list, layout, sectionID, edition) {
 	const links = [];
 	const indices = structure.getPositions(layout);
+	console.log('LAYOUT');
 
 	if(list !== undefined) {
 		for(let i = 0; i < indices.length; ++i) {

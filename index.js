@@ -200,7 +200,7 @@ async function analyseContent(content, editionKey) {
 					}
 				})
 				.catch(err => {
-					janetBot.dev(`There is an issue with the DB scan for ${content[i].articleUUID}' image: ${content[i].formattedURL}`)
+					janetBot.dev(`There is an issue with the DB scan for ${content[i].articleUUID} image: ${content[i].formattedURL}`)
 					console.log(err);
 				});
 

@@ -28,7 +28,7 @@ async function getClassification(imageUrl) {
 				if(res.ok) {
 					return res.json();
 				} else {
-					janetBot.dev(`<!channel> There was an issue with the API for ${imageUrl}; ERROR: ${res.status}`);
+					janetBot.dev(`<!channel> There was an issue with the API for ${imageUrl} -- ERROR: ${res.status}`);
 				}
 
 				return undefined;
