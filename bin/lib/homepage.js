@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 const { sections } = require('./page-structure');
 const structure = require('./page-structure');
 const Utils = require('./utils');
+const Tracker = require('./tracking');
 
 
 async function getAllImages(edition = 'uk') {
@@ -58,7 +59,7 @@ async function getAllImages(edition = 'uk') {
 async function getImagesFor(list, layout, sectionID, edition) {
 	const links = [];
 	const indices = structure.getPositions(layout);
-
+	
 	if(list !== undefined) {
 		for(let i = 0; i < indices.length; ++i) {
 			let imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
@@ -89,7 +90,7 @@ async function getImagesFor(list, layout, sectionID, edition) {
 }
 
 async function getTeaser(uuid) {
-	console.log('getTeaser::', uuid);
+	Tracker.splunk(`getTeaser:: ${uuid}`);
 	return fetch(`http://api.ft.com/enrichedcontent/${uuid}?apiKey=${process.env.FT_API_KEY}`)
 			.then(res => res.json())
 			.then(data => {
@@ -105,23 +106,23 @@ async function getTeaser(uuid) {
 				return {type: 'main', images: []};
 				
 			})
-			.catch(err => { throw err });
+			.catch(err => { Tracker.splunk(`Error getting teaser ${err}`) });
 }
 
 async function getAuthor(uuid) {
-	console.log('getAuthor::', uuid);
+	Tracker.splunk(`getAuthor:: ${uuid}`);
 	return fetch(`http://api.ft.com/enrichedcontent/${uuid}?apiKey=${process.env.FT_API_KEY}`)
 			.then(res => res.json())
 			.then(data => { return data.annotations })
-			.catch(err => { throw err });
+			.catch(err => { Tracker.splunk(`Error getting author ${err}`) });
 }
 
 async function getHeadshot(url) {
-	console.log('getHeadshot::', url);
+	Tracker.splunk(`getHeadshot:: ${url}`);
 	return fetch(`${url}?apiKey=${process.env.FT_API_KEY}`)
 			.then(res => res.json())
 			.then(data => { return data })
-			.catch(err => { throw err });
+			.catch(err => { Tracker.splunk(`Error getting headshot ${err}`) });
 }
 
 async function getHeadshotsFor(list, itemCount, layout, sectionID, edition) {
@@ -182,7 +183,7 @@ async function getList(listID, isConcept = false) {
 
 				return data;
 			})
-			.catch(err => { throw err });
+			.catch(err => { Tracker.splunk(`Error getting list ${err}`) });
 }
 
 module.exports = {

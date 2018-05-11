@@ -4,6 +4,7 @@ const AWS = require('aws-sdk');
 const Rekognition = new AWS.Rekognition();
 const janetBot = require('./bot');
 const Utils  = require('./utils');
+const Tracker = require('./tracking');
 
 const imageSizeLimit = 5242880; //5MB
 const MAX_RETRIES = 2;
@@ -11,7 +12,6 @@ const confidenceThreshold = 90;
 const widthThreshold = 0.04;
 
 async function getClassification(imageUrl) {
-	console.log('IMAGE::', imageUrl);
 	const imageToAnalyse = await getImage(imageUrl);
 
 	if(imageToAnalyse instanceof Error) {
@@ -33,7 +33,7 @@ async function rekognise(params, imageUrl) {
 	return new Promise((resolve, reject) => {
 		Rekognition.detectFaces(params, (err, data) => {
 			if(err) {
-				console.log(err);
+				Tracker.splunk(err);
 				reject(err);
 			}
 
@@ -52,17 +52,16 @@ async function rekognise(params, imageUrl) {
 							janetBot.dev(`<!channel> Unhandled gender ${JSON.stringify(details[i].Gender)} for ${imageUrl}`);
 						}
 					} else {
-						//TODO: tracking only? -- can be annoying if multiple small faces in image
-						janetBot.dev(`Small face ratio ${details[i].BoundingBox.Width}, skipped for ${imageUrl}`);
+						Tracker.splunk(`Small face ratio ${details[i].BoundingBox.Width}, skipped for ${imageUrl}`);
 					}
 
 					if(details[i].Gender.Confidence < confidenceThreshold) {
-						janetBot.dev(`Low confidence classification ${JSON.stringify(details[i].Gender)} for ${imageUrl}`);
+						Tracker.splunk(`Low confidence classification ${JSON.stringify(details[i].Gender)} for ${imageUrl}`);
 					}
 				}
 
 				result.classification = extractClassification(genders);
-				console.log(result.classification);
+				Tracker.splunk(`IMAGE:: ${imageUrl} >> ${result.classification}`);
 
 				resolve(result);
 			}
@@ -96,7 +95,6 @@ async function getImage(img) {
 			})
 			.catch(err => {
 				janetBot.dev(`<!channel> There was an issue retrieving the image ${image} -- ERROR: ${err}`);
-				throw err;
 			});
 }
 

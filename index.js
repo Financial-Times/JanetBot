@@ -23,6 +23,7 @@ const feedbackStore = require('./bin/lib/dynamo');
 const { editions } = require('./bin/lib/page-structure');
 const { message } = require('./bin/lib/messaging');
 const janetBotAPI = require('./bin/lib/rekognition');
+const Tracker = require('./bin/lib/tracking');
 
 const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
 let pollTimeout;
@@ -40,9 +41,17 @@ app.use((req, res, next) => {
 
 app.post('/feedback', (req, res) => {
 	const update = Utils.sanitiseNull(req.body);
-	if(process.env.REPORTING === 'on') {
-		janetBot.dev(`Correction received for ${update.formattedURL} Classification:: ${update.classification}, original classification: ${update.originalResult}`);
-	}
+	Tracker.spoor({
+		'category': 'Application',
+		'action': 'correctionsubmitted',
+		'system' : {
+			'source': 'ftlabs-janetbot'
+		},
+		'context' : {
+			'product': 'ftlabs',
+			'correction': update
+		}
+	});
 
 	feedbackStore.write(update, process.env.AWS_TABLE)
 	.then(response => {
@@ -50,7 +59,7 @@ app.post('/feedback', (req, res) => {
 		return res.status(200).end();
 	})
 	.catch(err => {
-		console.log('Saving failed', err);
+		Tracker.splunk(`Correction saving failed: ${err}`)
 		janetBot.dev(`<!channel> Correction saving error for ${update.articleUUID}`);
 		return res.status(400).end();
 	});
@@ -100,39 +109,62 @@ function updateResults(image) {
 }
 
 function updateTotals(edition) {
-	let score = 0;
-	let scoreTopHalf = 0;
+	let wScore = 0;
+	let wScoreTopHalf = 0;
+	let mScore = 0;
+	let mScoreTopHalf = 0;
 
 	results[edition].forEach( item => {
 		if(item.classification === 'woman') {
-			++score;
+			++wScore;
 
 			if(item.isTopHalf) {
-				++scoreTopHalf;
+				++wScoreTopHalf;
+			}
+		} else if(item.classification === 'man') {
+			++mScore;
+
+			if(item.isTopHalf) {
+				++mScoreTopHalf;
 			}
 		}
 	});
 
-	totals[edition]['women'] = score;
-	totals[edition]['topHalfWomen'] = scoreTopHalf;
+	totals[edition]['women'] = wScore;
+	totals[edition]['topHalfWomen'] = wScoreTopHalf;
+	totals[edition]['men'] = mScore;
+	totals[edition]['topHalfMen'] = mScoreTopHalf;
+
+	Tracker.spoor({
+		'category': 'Application',
+		'action': 'totalsupdate',
+		'system' : {
+			'source': 'ftlabs-janetbot'
+		},
+		'context' : {
+			'product': 'ftlabs',
+			'totals': totals
+		}
+	});
 }
 
 async function getContent() {
-
 	if(canPoll) {
 		canPoll = false;
 		for(let i = 0; i < editions.length; ++ i) {
+
 			const edition = editions[i];
 			const imageData =  await homepagecontent.frontPage(edition);
-			// console.log(`${edition.toUpperCase()} HOMEPAGE`, imageData.length, imageData);
 			totals[edition]['women'] = 0;
-			totals[edition]['topHalfWomen'] = 0;	
+			totals[edition]['topHalfWomen'] = 0;
+			totals[edition]['men'] = 0;
+			totals[edition]['topHalfMen'] = 0;	
 			totals[edition]['images'] = imageData.length;
 			results[edition] = await analyseContent(imageData, edition);
 			updateTotals(edition);
 		}
 
-		console.log(totals);
+		Tracker.splunk(`Results totals ${totals}`);
 		// janetBot.warn(message(results, totals));
 
 		latestCheck = new Date();
@@ -183,12 +215,24 @@ async function analyseContent(content, editionKey) {
 					}
 				})
 				.catch(err => {
-					janetBot.dev(`There is an issue with the DB scan for '${content[i].articleUUID}' image: ${content[i].formattedURL}`)
-					console.log(err);
+					janetBot.dev(`There is an issue with the classification for '${content[i].articleUUID}' image: ${content[i].formattedURL}`);
+					Tracker.splunk(`Classification error ${err}`);
 				});
 
 			Object.assign(content[i], checkDB);
 		}
+
+		Tracker.spoor({
+			'category': 'Application',
+			'action': 'image analysed',
+			'system' : {
+				'source': 'ftlabs-janetbot'
+			},
+			'context' : {
+				'product': 'ftlabs',
+				'image': content[i]
+			}
+		});
 	}
 
 	return content;
