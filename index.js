@@ -41,9 +41,17 @@ app.use((req, res, next) => {
 
 app.post('/feedback', (req, res) => {
 	const update = Utils.sanitiseNull(req.body);
-	if(process.env.REPORTING === 'on') {
-		janetBot.dev(`Correction received for ${update.formattedURL} Classification:: ${update.classification}, original classification: ${update.originalResult}`);
-	}
+	Tracker.spoor({
+		'category': 'Application',
+		'action': 'correctionsubmitted',
+		'system' : {
+			'source': 'ftlabs-janetbot'
+		},
+		'context' : {
+			'product': 'ftlabs',
+			'correction': update
+		}
+	});
 
 	feedbackStore.write(update, process.env.AWS_TABLE)
 	.then(response => {
@@ -126,10 +134,21 @@ function updateTotals(edition) {
 	totals[edition]['topHalfWomen'] = wScoreTopHalf;
 	totals[edition]['men'] = mScore;
 	totals[edition]['topHalfMen'] = mScoreTopHalf;
+
+	Tracker.spoor({
+		'category': 'Application',
+		'action': 'totalsupdate',
+		'system' : {
+			'source': 'ftlabs-janetbot'
+		},
+		'context' : {
+			'product': 'ftlabs',
+			'totals': totals
+		}
+	});
 }
 
 async function getContent() {
-
 	if(canPoll) {
 		canPoll = false;
 		for(let i = 0; i < editions.length; ++ i) {
@@ -202,6 +221,18 @@ async function analyseContent(content, editionKey) {
 
 			Object.assign(content[i], checkDB);
 		}
+
+		Tracker.spoor({
+			'category': 'Application',
+			'action': 'image analysed',
+			'system' : {
+				'source': 'ftlabs-janetbot'
+			},
+			'context' : {
+				'product': 'ftlabs',
+				'image': content[i]
+			}
+		});
 	}
 
 	return content;
