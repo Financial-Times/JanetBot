@@ -5,23 +5,16 @@ function minutesToMs(mn) {
 	return mn*60*1000;
 }
 
-function msToMinSec(ms) {
-	const min = Math.round(ms/1000/60);
-	const sec = (ms/1000)%60;
-
-	return `${min} minutes ${Math.round(sec)} seconds`;
-}
-
 function extractUUID(link) {
 	if(link !== undefined) {
-		return link.apiUrl.replace('http://api.ft.com/content/', '');	
+		return link.apiUrl.replace('http://api.ft.com/content/', '').replace('http://api.ft.com/things/', '');	
 	}
 
 	return undefined;
 }
 
 function isOpinion(annotation) {
-	return (annotation.predicate === 'http://www.ft.com/ontology/classification/isClassifiedBy' || annotation.predicate === 'http://www.ft.com/ontology/classification/isPrimarilyClassifiedBy' && annotation.prefLabel === 'Opinion');
+	return ((annotation.predicate === 'http://www.ft.com/ontology/classification/isClassifiedBy' || annotation.predicate === 'http://www.ft.com/ontology/classification/isPrimarilyClassifiedBy') && (annotation.type === 'GENRE' && annotation.prefLabel === 'Opinion'));
 }
 
 function setComparisonBase(base) {
@@ -60,16 +53,41 @@ function setPlaceholderURL(url) {
 }
 
 async function formatImageUrl(url) {
-	let apiUrls = process.env.API_IMG_URL.split(',');
+	const isUPPImage = checkUrl(url.binaryUrl);
 	let format;
 
-	for (let i = 0; i < apiUrls.length; ++i) {
-		format = url.replace(apiUrls[i], process.env.REPLACE_IMG_URL);
+	if(isUPPImage) {
+		const uuid = extractUUID(url);
+		format = `${process.env.IMAGE_SERVICE_URL}${process.env.REPLACE_IMG_URL}${uuid}`;
+	} else {
+		format = `${process.env.IMAGE_SERVICE_URL}${encodeURIComponent(url.binaryUrl)}`;
 	}
 
-	format = format.concat('?source=janetbot&quality=low&width=500');
+	return format.concat('?source=janetbot&width=800');
+}
 
-	return format;
+function getSmallerImage(image, tries = 0) {
+	let newUrl; 
+	if(tries < 1) {
+		newUrl = image.concat('&quality=low');
+	} else {
+		const baseUrl = image.split('&width=');
+		let newSize = '500';
+
+		if(baseUrl[1].startsWith('500')) {
+			newSize = '300';
+		}
+
+		newUrl = baseUrl[0].concat(`&width=${newSize}&quality=low`);
+	}
+
+	++tries;
+	return { url: newUrl, retries: tries};
+}
+
+function checkUrl(url) {
+	const ftcmsImageRegex = /^https?:\/\/(?:(?:www\.)?ft\.com\/cms|im\.ft-static\.com\/content\/images|com\.ft\.imagepublish\.(?:prod|upp-prod-eu|upp-prod-us)\.s3\.amazonaws\.com|prod-upp-image-read\.ft\.com)\/([a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12})/g;
+	return ftcmsImageRegex.test(url);
 }
 
 function sanitiseNullValues(object) {
@@ -116,7 +134,6 @@ function padTime (time) {
 
 module.exports = {
 	minutesToMs: minutesToMs,
-	msToMinSec: msToMinSec,
 	extractUUID: extractUUID,
 	isOpinion: isOpinion,
 	dedupe: removeDuplicatesFromSection,
@@ -126,5 +143,6 @@ module.exports = {
 	sanitiseNull: sanitiseNullValues,
 	parseNull: parseNullValues,
 	sort: sortTime,
-	padTime: padTime
+	padTime: padTime,
+	getSmallerImage: getSmallerImage
 };

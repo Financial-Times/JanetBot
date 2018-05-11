@@ -13,8 +13,12 @@ async function getAllImages(edition = 'uk') {
 			const sectionData = await getList(sections[i][edition], sections[i].isConcept);
 			let layout = sectionData.hasOwnProperty('layoutHint')?sectionData.layoutHint:sections[i].layout;
 
-			if(edition === 'international' && i === 0) {
+			if(i === 0) {
 				Utils.saveBase(sectionData.items);
+			}
+
+			if(layout === 'regionalnews' || layout === 'technology') {
+				sectionData.items = Utils.dedupe(sectionData.items);
 			}
 			
 			const sectionImages = await getImagesFor(sectionData.items, layout, i, edition);
@@ -61,7 +65,8 @@ async function getImagesFor(list, layout, sectionID, edition) {
 			let imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
 
 			if(imageData.images.length) {
-				const formattedURL = await Utils.formatUrl(imageData.images[0].binaryUrl);
+				const formattedURL = await Utils.formatUrl(imageData.images[0]);
+
 				const image = {
 					timestamp: new Date().getTime(),
 					edition: edition,
@@ -74,8 +79,8 @@ async function getImagesFor(list, layout, sectionID, edition) {
 					originalUrl: imageData.images[0].binaryUrl,
 					formattedURL: formattedURL,
 					isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false
-
 				}
+
 				links.push(image);	
 			}
 		}
@@ -142,9 +147,10 @@ async function getHeadshotsFor(list, itemCount, layout, sectionID, edition) {
 								sectionPos: i,
 								imageType: 'headshot',
 								originalUrl: imageData._imageUrl,
-								formattedURL: imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot'),
-								isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false
+								formattedURL: imageData._imageUrl.replace('?source=next', '').concat('?source=janetbot&width=500'),
+								isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, i):false
 							}
+
 							headShots.push(image);
 						}
 					}
