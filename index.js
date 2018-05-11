@@ -23,6 +23,7 @@ const feedbackStore = require('./bin/lib/dynamo');
 const { editions } = require('./bin/lib/page-structure');
 const { message } = require('./bin/lib/messaging');
 const janetBotAPI = require('./bin/lib/rekognition');
+const Tracker = require('./bin/lib/tracking');
 
 const pollInterval = Utils.minutesToMs(process.env.POLLING_INTERVAL_MINUTES);
 let pollTimeout;
@@ -50,7 +51,7 @@ app.post('/feedback', (req, res) => {
 		return res.status(200).end();
 	})
 	.catch(err => {
-		console.log('Saving failed', err);
+		Tracker.splunk(`Correction saving failed: ${err}`)
 		janetBot.dev(`<!channel> Correction saving error for ${update.articleUUID}`);
 		return res.status(400).end();
 	});
@@ -135,7 +136,6 @@ async function getContent() {
 
 			const edition = editions[i];
 			const imageData =  await homepagecontent.frontPage(edition);
-			// console.log(`${edition.toUpperCase()} HOMEPAGE`, imageData.length, imageData);
 			totals[edition]['women'] = 0;
 			totals[edition]['topHalfWomen'] = 0;
 			totals[edition]['men'] = 0;
@@ -145,7 +145,7 @@ async function getContent() {
 			updateTotals(edition);
 		}
 
-		console.log(totals);
+		Tracker.splunk(`Results totals ${totals}`);
 		// janetBot.warn(message(results, totals));
 
 		latestCheck = new Date();
@@ -196,8 +196,8 @@ async function analyseContent(content, editionKey) {
 					}
 				})
 				.catch(err => {
-					janetBot.dev(`There is an issue with the DB scan for '${content[i].articleUUID}' image: ${content[i].formattedURL}`);
-					console.log(err);
+					janetBot.dev(`There is an issue with the classification for '${content[i].articleUUID}' image: ${content[i].formattedURL}`);
+					Tracker.splunk(`Classification error ${err}`);
 				});
 
 			Object.assign(content[i], checkDB);

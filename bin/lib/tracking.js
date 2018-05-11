@@ -25,11 +25,10 @@ function logToSpoor(data) {
 			}
 		})
 		.then(r => {
-			console.log('Data successfully submitted to Spoor', r);
 			return r;
 		})
 		.catch(err => {
-			console.log('Request to Spoor failed:', err);
+			logToSplunk('Request to Spoor failed:', err);
 		});
 }
 
