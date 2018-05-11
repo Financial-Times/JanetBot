@@ -165,7 +165,7 @@ async function getContent() {
 		}
 
 		Tracker.splunk(`Results totals ${totals}`);
-		// janetBot.warn(message(results, totals));
+		janetBot.warn(message(results, totals));
 
 		latestCheck = new Date();
 
