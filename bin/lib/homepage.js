@@ -106,7 +106,7 @@ async function getTeaser(uuid) {
 				return {type: 'main', images: []};
 				
 			})
-			.catch(err => { Tracker.splunk(`Error getting teaser ${err}`) });
+			.catch(err => { Tracker.splunk(`Error getting teaser ${JSON.stringify(err)}`) });
 }
 
 async function getAuthor(uuid) {
@@ -114,7 +114,7 @@ async function getAuthor(uuid) {
 	return fetch(`http://api.ft.com/enrichedcontent/${uuid}?apiKey=${process.env.FT_API_KEY}`)
 			.then(res => res.json())
 			.then(data => { return data.annotations })
-			.catch(err => { Tracker.splunk(`Error getting author ${err}`) });
+			.catch(err => { Tracker.splunk(`Error getting author ${JSON.stringify(err)}`) });
 }
 
 async function getHeadshot(url) {
@@ -122,7 +122,7 @@ async function getHeadshot(url) {
 	return fetch(`${url}?apiKey=${process.env.FT_API_KEY}`)
 			.then(res => res.json())
 			.then(data => { return data })
-			.catch(err => { Tracker.splunk(`Error getting headshot ${err}`) });
+			.catch(err => { Tracker.splunk(`Error getting headshot ${JSON.stringify(err)}`) });
 }
 
 async function getHeadshotsFor(list, itemCount, layout, sectionID, edition) {
@@ -183,7 +183,7 @@ async function getList(listID, isConcept = false) {
 
 				return data;
 			})
-			.catch(err => { Tracker.splunk(`Error getting list ${err}`) });
+			.catch(err => { Tracker.splunk(`Error getting list ${JSON.stringify(err)}`) });
 }
 
 module.exports = {

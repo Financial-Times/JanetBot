@@ -164,7 +164,7 @@ async function getContent() {
 			updateTotals(edition);
 		}
 
-		Tracker.splunk(`Results totals ${totals}`);
+		Tracker.splunk(`Results totals ${JSON.stringify(totals)}`);
 		janetBot.warn(message(results, totals));
 
 		latestCheck = new Date();
