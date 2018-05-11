@@ -33,7 +33,7 @@ async function rekognise(params, imageUrl) {
 	return new Promise((resolve, reject) => {
 		Rekognition.detectFaces(params, (err, data) => {
 			if(err) {
-				Tracker.splunk(err);
+				Tracker.splunk(`Rekognition error ${JSON.stringify(err)}`);
 				reject(err);
 			}
 
