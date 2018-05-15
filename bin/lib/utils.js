@@ -24,18 +24,20 @@ function setComparisonBase(base) {
 function removeDuplicatesFromSection(section) {
 	const tempDupes = [];
 	
-	for (let i = 0; i < topStories.length; ++i) { 
-        for (let j = 0;  j < section.length; ++j) { 
-            if (topStories[i].apiUrl === section[j].apiUrl) {
-            	tempDupes.push(section[j]);
-                section.splice(j, 1);
-            }
-        }
-    }
+	if(section.length && topStories.length) {
+		for (let i = 0; i < topStories.length; ++i) { 
+	        for (let j = 0;  j < section.length; ++j) { 
+	            if (topStories[i].apiUrl === section[j].apiUrl) {
+	            	tempDupes.push(section[j]);
+	                section.splice(j, 1);
+	            }
+	        }
+	    }
 
-    section = section.concat(tempDupes);
-	//Re-adds duplicates at the end of the array, in case content is too short
-	
+	    section = section.concat(tempDupes);
+		//Re-adds duplicates at the end of the array, in case content is too short
+	}
+
 	return section;
 }
 
