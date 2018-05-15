@@ -165,7 +165,7 @@ async function getContent() {
 		}
 
 		Tracker.splunk(`Results totals ${JSON.stringify(totals)}`);
-		janetBot.warn(message(results, totals));
+		// janetBot.warn(message(results, totals));
 
 		latestCheck = new Date();
 
@@ -221,6 +221,8 @@ async function analyseContent(content, editionKey) {
 
 			Object.assign(content[i], checkDB);
 		}
+
+		Tracker.splunk(`app=ftlabs-janetbot article=${content[i].articleUUID} classification=${content[i].classification} rawResults=${content[i].rawResults}`);
 
 		Tracker.spoor({
 			'category': 'Application',
