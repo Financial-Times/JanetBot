@@ -17,6 +17,10 @@ function isOpinion(annotation) {
 	return ((annotation.predicate === 'http://www.ft.com/ontology/classification/isClassifiedBy' || annotation.predicate === 'http://www.ft.com/ontology/classification/isPrimarilyClassifiedBy') && (annotation.type === 'GENRE' && annotation.prefLabel === 'Opinion'));
 }
 
+function isVideo(types) {
+	return types && types.includes('http://www.ft.com/ontology/content/Video');
+}
+
 function setComparisonBase(base) {
 	topStories = base;
 }
@@ -138,6 +142,7 @@ module.exports = {
 	minutesToMs: minutesToMs,
 	extractUUID: extractUUID,
 	isOpinion: isOpinion,
+	isVideo: isVideo,
 	dedupe: removeDuplicatesFromSection,
 	saveBase: setComparisonBase,
 	getArticleURL: setPlaceholderURL,

@@ -69,7 +69,6 @@ async function getImagesFor(list, layout, sectionID, edition) {
 	if(list !== undefined) {
 		for(let i = 0; i < indices.length; ++i) {
 			let imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
-
 			if(imageData.images && imageData.images.length) {
 				const formattedURL = await Utils.formatUrl(imageData.images[0]);
 
@@ -84,7 +83,8 @@ async function getImagesFor(list, layout, sectionID, edition) {
 					imageType: imageData.type,
 					originalUrl: imageData.images[0].binaryUrl,
 					formattedURL: formattedURL,
-					isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false
+					isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false,
+					isVideo: imageData.isVideo
 				}
 
 				links.push(image);	
@@ -102,14 +102,14 @@ async function getTeaser(uuid) {
 			.then(data => {
 				if(data.alternativeImages && data.alternativeImages.promotionalImage) {
 
-					return {type: 'promo', images: new Array(data.alternativeImages.promotionalImage), webUrl: data.webUrl};
+					return {type: 'promo', images: new Array(data.alternativeImages.promotionalImage), webUrl: data.webUrl, isVideo: Utils.isVideo(data.types)};
 				}
 
 				if(data.mainImage) {
-					return {type: 'main', images: data.mainImage.members, webUrl: data.webUrl};	
+					return {type: 'main', images: data.mainImage.members, webUrl: data.webUrl, isVideo: Utils.isVideo(data.types)};	
 				}
 
-				return {type: 'main', images: []};
+				return {type: 'main', images: [], isVideo: false};
 				
 			})
 			.catch(err => { 
