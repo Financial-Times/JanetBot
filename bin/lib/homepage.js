@@ -12,42 +12,48 @@ async function getAllImages(edition = 'uk') {
 	for(let i = 0; i < sections.length; ++i) {
 		if(sections[i][edition] !== 'hidden') {
 			const sectionData = await getList(sections[i][edition], sections[i].isConcept);
-			let layout = sectionData.hasOwnProperty('layoutHint')?sectionData.layoutHint:sections[i].layout;
 
-			if(i === 0) {
-				Utils.saveBase(sectionData.items);
-			}
+			if(sectionData) {
+				let layout = sectionData.hasOwnProperty('layoutHint')?sectionData.layoutHint:sections[i].layout;
 
-			if(layout === 'regionalnews' || layout === 'technology') {
-				sectionData.items = Utils.dedupe(sectionData.items);
-			}
-			
-			const sectionImages = await getImagesFor(sectionData.items, layout, i, edition);
-			allSectionImages = allSectionImages.concat(sectionImages);
+				if(i === 0) {
+					Utils.saveBase(sectionData.items);
+				}
 
-			if(i === 0 && layout === 'landscape') {
-				//Special accommodation for when landscape piece is opinion
-				const sectionHeadshots = await getHeadshotsFor(sectionData.items, 2, layout, i, edition);
-				allSectionImages = allSectionImages.concat(sectionHeadshots);	
-			} else if(sections[i].checkHeadshots !== null) {
-				const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots, layout, i, edition);
-				allSectionImages = allSectionImages.concat(sectionHeadshots);
-			}
+				if(layout === 'regionalnews' || layout === 'technology') {
+					sectionData.items = Utils.dedupe(sectionData.items);
+				}
+				
+				const sectionImages = await getImagesFor(sectionData.items, layout, i, edition);
+				allSectionImages = allSectionImages.concat(sectionImages);
+
+				if(i === 0 && layout === 'landscape') {
+					//Special accommodation for when landscape piece is opinion
+					const sectionHeadshots = await getHeadshotsFor(sectionData.items, 2, layout, i, edition);
+					allSectionImages = allSectionImages.concat(sectionHeadshots);	
+				} else if(sections[i].checkHeadshots !== null) {
+					const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots, layout, i, edition);
+					allSectionImages = allSectionImages.concat(sectionHeadshots);
+				}
+			}		
 		} else if( edition === 'international' && sections[i].hasOwnProperty('internationalVariants')) {
 			const variants = sections[i].internationalVariants;
 
 			for (let j = 0; j < variants.length; ++j) {
 				const sectionData = await getList(variants[j].listID, sections[i].isConcept);
-				sectionData.items = Utils.dedupe(sectionData.items);
 
-				let layout = sections[i].layout;
-				
-				const sectionImages = await getImagesFor(sectionData.items, layout, i, `${edition}__${variants[j].region}`);
-				allSectionImages = allSectionImages.concat(sectionImages);
+				if(sectionData) {
+					sectionData.items = Utils.dedupe(sectionData.items);
 
-				if(sections[i].checkHeadshots !== null) {
-					const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots, layout, i, `${edition}__${variants[j].region}`);
-					allSectionImages = allSectionImages.concat(sectionHeadshots);
+					let layout = sections[i].layout;
+					
+					const sectionImages = await getImagesFor(sectionData.items, layout, i, `${edition}__${variants[j].region}`);
+					allSectionImages = allSectionImages.concat(sectionImages);
+
+					if(sections[i].checkHeadshots !== null) {
+						const sectionHeadshots = await getHeadshotsFor(sectionData.items, sections[i].checkHeadshots, layout, i, `${edition}__${variants[j].region}`);
+						allSectionImages = allSectionImages.concat(sectionHeadshots);
+					}	
 				}
 			}
 		}
@@ -63,8 +69,7 @@ async function getImagesFor(list, layout, sectionID, edition) {
 	if(list !== undefined) {
 		for(let i = 0; i < indices.length; ++i) {
 			let imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
-
-			if(imageData.images.length) {
+			if(imageData.images && imageData.images.length) {
 				const formattedURL = await Utils.formatUrl(imageData.images[0]);
 
 				const image = {
@@ -78,7 +83,8 @@ async function getImagesFor(list, layout, sectionID, edition) {
 					imageType: imageData.type,
 					originalUrl: imageData.images[0].binaryUrl,
 					formattedURL: formattedURL,
-					isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false
+					isTopHalf: (sectionID === 0)?structure.isTopHalf(layout, indices[i]):false,
+					isVideo: imageData.isVideo
 				}
 
 				links.push(image);	
@@ -90,39 +96,48 @@ async function getImagesFor(list, layout, sectionID, edition) {
 }
 
 async function getTeaser(uuid) {
-	Tracker.splunk(`getTeaser:: ${uuid}`);
+	Tracker.splunk(`action=getTeaser::${uuid}`);
 	return fetch(`http://api.ft.com/enrichedcontent/${uuid}?apiKey=${process.env.FT_API_KEY}`)
 			.then(res => res.json())
 			.then(data => {
 				if(data.alternativeImages && data.alternativeImages.promotionalImage) {
 
-					return {type: 'promo', images: new Array(data.alternativeImages.promotionalImage), webUrl: data.webUrl};
+					return {type: 'promo', images: new Array(data.alternativeImages.promotionalImage), webUrl: data.webUrl, isVideo: Utils.isVideo(data.types)};
 				}
 
 				if(data.mainImage) {
-					return {type: 'main', images: data.mainImage.members, webUrl: data.webUrl};	
+					return {type: 'main', images: data.mainImage.members, webUrl: data.webUrl, isVideo: Utils.isVideo(data.types)};	
 				}
 
-				return {type: 'main', images: []};
+				return {type: 'main', images: [], isVideo: false};
 				
 			})
-			.catch(err => { Tracker.splunk(`Error getting teaser ${JSON.stringify(err)}`) });
+			.catch(err => { 
+				Tracker.splunk(`error="Error getting teaser ${JSON.stringify(err)}"`);
+				return false;
+			});
 }
 
 async function getAuthor(uuid) {
-	Tracker.splunk(`getAuthor:: ${uuid}`);
+	Tracker.splunk(`action=getAuthor::${uuid}`);
 	return fetch(`http://api.ft.com/enrichedcontent/${uuid}?apiKey=${process.env.FT_API_KEY}`)
 			.then(res => res.json())
 			.then(data => { return data.annotations })
-			.catch(err => { Tracker.splunk(`Error getting author ${JSON.stringify(err)}`) });
+			.catch(err => { 
+				Tracker.splunk(`error="Error getting author ${JSON.stringify(err)}"`);
+				return undefined;
+			});
 }
 
 async function getHeadshot(url) {
-	Tracker.splunk(`getHeadshot:: ${url}`);
+	Tracker.splunk(`action=getHeadshot::${url}`);
 	return fetch(`${url}?apiKey=${process.env.FT_API_KEY}`)
 			.then(res => res.json())
 			.then(data => { return data })
-			.catch(err => { Tracker.splunk(`Error getting headshot ${JSON.stringify(err)}`) });
+			.catch(err => { 
+				Tracker.splunk(`error="Error getting headshot ${JSON.stringify(err)}"`);
+				return false;
+			});
 }
 
 async function getHeadshotsFor(list, itemCount, layout, sectionID, edition) {
@@ -136,7 +151,7 @@ async function getHeadshotsFor(list, itemCount, layout, sectionID, edition) {
 				for(let j = 0; j < authorData.length; ++j) {
 					if(authorData[j].predicate === 'http://www.ft.com/ontology/annotation/hasAuthor') {
 						const imageData = await getHeadshot(authorData[j].apiUrl);
-						if(imageData._imageUrl) {
+						if(imageData && imageData._imageUrl) {
 							const image = {
 								timestamp: new Date().getTime(),
 								edition: edition,
@@ -183,7 +198,10 @@ async function getList(listID, isConcept = false) {
 
 				return data;
 			})
-			.catch(err => { Tracker.splunk(`Error getting list ${JSON.stringify(err)}`) });
+			.catch(err => { 
+				Tracker.splunk(`error="Error getting list ${JSON.stringify(err)}"`);
+				return false;
+			});
 }
 
 module.exports = {

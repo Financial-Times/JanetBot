@@ -33,7 +33,7 @@ async function rekognise(params, imageUrl) {
 	return new Promise((resolve, reject) => {
 		Rekognition.detectFaces(params, (err, data) => {
 			if(err) {
-				Tracker.splunk(`Rekognition error ${JSON.stringify(err)}`);
+				Tracker.splunk(`error="Rekognition error ${JSON.stringify(err)}"`);
 				reject(err);
 			}
 
@@ -50,18 +50,19 @@ async function rekognise(params, imageUrl) {
 							++ genders.woman;
 						} else {
 							janetBot.dev(`<!channel> Unhandled gender ${JSON.stringify(details[i].Gender)} for ${imageUrl}`);
+							Tracker.splunk(`error="Unhandled gender ${JSON.stringify(details[i].Gender)} for ${imageUrl}"`);
 						}
 					} else {
-						Tracker.splunk(`Small face ratio ${details[i].BoundingBox.Width}, skipped for ${imageUrl}`);
+						Tracker.splunk(`rekognition="Small face ratio ${details[i].BoundingBox.Width}, skipped for ${imageUrl}"`);
 					}
 
 					if(details[i].Gender.Confidence < confidenceThreshold) {
-						Tracker.splunk(`Low confidence classification ${JSON.stringify(details[i].Gender)} for ${imageUrl}`);
+						Tracker.splunk(`rekognition="Low confidence classification ${JSON.stringify(details[i].Gender)} for ${imageUrl}"`);
 					}
 				}
 
 				result.classification = extractClassification(genders);
-				Tracker.splunk(`IMAGE:: ${imageUrl} >> ${result.classification}`);
+				Tracker.splunk(`classification="IMAGE::${imageUrl} >> ${result.classification}"`);
 
 				resolve(result);
 			}
@@ -74,6 +75,7 @@ async function getImage(img) {
 
 	if(img.retries === MAX_RETRIES) {
 		janetBot.dev(`<!channel> Image is still too big after retries ${image}`);
+		Tracker.splunk(`error="Image too big for analysis" image=${image}`);
 		return new Error();
 	}
 
@@ -95,6 +97,7 @@ async function getImage(img) {
 			})
 			.catch(err => {
 				janetBot.dev(`<!channel> There was an issue retrieving the image ${image} -- ERROR: ${err}`);
+				Tracker.splunk(`error="There was an issue retrieving the image ${err}" image=${image}`);
 			});
 }
 

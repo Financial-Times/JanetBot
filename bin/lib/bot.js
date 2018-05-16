@@ -1,7 +1,6 @@
 if (process.env.NODE_ENV !== 'production') require('dotenv').config();
 const slackbot = require('slackbots');
 const scheduler = require('./scheduler');
-const Tracker = require('./tracking');
 
 const botSettings = formatSettings();
 const bots = [];
@@ -42,7 +41,6 @@ function sendMessageToDev(message) {
 		for (j in bots[i].channel) {
 			const channel = bots[i].channel[j];
 			if(channel === 'janetbot-dev') {
-				Tracker.splunk(message);
 				bots[i].bot.postMessageToGroup(bots[i].channel[j], message, botParams);	
 			}
 		}	

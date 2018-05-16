@@ -28,7 +28,8 @@ function logToSpoor(data) {
 			return r;
 		})
 		.catch(err => {
-			logToSplunk('Request to Spoor failed:', err);
+			logToSplunk(`error="Request to Spoor failed: ${JSON.stringify(err)}"`);
+			return;
 		});
 }
 

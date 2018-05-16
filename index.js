@@ -59,7 +59,7 @@ app.post('/feedback', (req, res) => {
 		return res.status(200).end();
 	})
 	.catch(err => {
-		Tracker.splunk(`Correction saving failed: ${err}`)
+		Tracker.splunk(`error="Correction saving failed: ${err}"`)
 		janetBot.dev(`<!channel> Correction saving error for ${update.articleUUID}`);
 		return res.status(400).end();
 	});
@@ -164,7 +164,7 @@ async function getContent() {
 			updateTotals(edition);
 		}
 
-		Tracker.splunk(`Results totals ${JSON.stringify(totals)}`);
+		Tracker.splunk(`totals="Results totals ${JSON.stringify(totals)}"`);
 		janetBot.warn(message(results, totals));
 
 		latestCheck = new Date();
@@ -216,11 +216,13 @@ async function analyseContent(content, editionKey) {
 				})
 				.catch(err => {
 					janetBot.dev(`There is an issue with the classification for '${content[i].articleUUID}' image: ${content[i].formattedURL}`);
-					Tracker.splunk(`Classification error ${err}`);
+					Tracker.splunk(`error="Classification error ${err}" article=${content[i].articleUUID} image=${content[i].formattedURL}`);
 				});
 
 			Object.assign(content[i], checkDB);
 		}
+
+		Tracker.splunk(`article=${content[i].articleUUID} image=${content[i].formattedURL} classification=${content[i].classification} rekognition=${content[i].rawResults}`);
 
 		Tracker.spoor({
 			'category': 'Application',
