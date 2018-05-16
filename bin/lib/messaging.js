@@ -15,8 +15,8 @@ function getJanetBotMessage(contents, totals) {
 
 function getMessageForEdition(edition, content, total) {
 	const message = `
-	on the ${edition.toUpperCase()} home page, it seems the ${getTotals(content, true)} images in the Top Half feature ${total['topHalfWomen']} wom${(total['topHalfWomen'] === 1)?'a':'e'}n. 
-	It seems the ${getTotals(content)} images on the rest of the ${edition.toUpperCase()} home page feature ${diffWomen(total)} wom${(diffWomen(total) === 1)?'a':'e'}n.
+	on the ${edition.toUpperCase().slice(0,3)} home page, it seems the *${getTotals(content, true)}* images in the Top Half feature *${total['topHalfMen']}* m${(total['topHalfMen'] === 1)?'a':'e'}n and *${total['topHalfWomen']}* wom${(total['topHalfWomen'] === 1)?'a':'e'}n. 
+	It seems the *${getTotals(content)}* images on the rest of the ${edition.toUpperCase().slice(0,3)} home page feature *${diffImg(total, 'men')}* m${(diffImg(total, 'men') === 1)?'a':'e'}n and *${diffImg(total)}* wom${(diffImg(total) === 1)?'a':'e'}n.
 	`;
 
 	return message;
@@ -39,8 +39,9 @@ function getTotals(data, topHalf = false) {
 	return total;
 }
 
-function diffWomen(total) {
-	return total['women'] - total['topHalfWomen'];
+function diffImg(total, param = 'women') {
+	const topHalfParam = `topHalf${param.charAt(0).toUpperCase() + param.slice(1)}`;
+	return total[param] - total[topHalfParam];
 }
 
 module.exports = {
