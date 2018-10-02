@@ -97,6 +97,10 @@ async function getImagesFor(list, layout, sectionID, edition) {
 
 async function getTeaser(uuid) {
 	Tracker.splunk(`action=getTeaser::${uuid}`);
+	if(uuid === undefined) {
+		return false;
+	}
+
 	return fetch(`http://api.ft.com/enrichedcontent/${uuid}?apiKey=${process.env.FT_API_KEY}`)
 			.then(res => res.json())
 			.then(data => {
