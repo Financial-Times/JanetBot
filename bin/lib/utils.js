@@ -7,7 +7,8 @@ function minutesToMs(mn) {
 
 function extractUUID(link) {
 	if(link !== undefined) {
-		return link.apiUrl.replace('http://api.ft.com/content/', '').replace('http://api.ft.com/things/', '');	
+		const linkWithoutHTTP = link.apiUrl.split('://')[1];
+		return linkWithoutHTTP.replace('api.ft.com/content/', '').replace('api.ft.com/things/', '');	
 	}
 
 	return undefined;
