@@ -139,6 +139,10 @@ function padTime (time) {
 	return time.toString().padStart(2,'0');
 }
 
+function calcDuration (duration) {
+	return new Date().getTime() - duration
+}
+
 module.exports = {
 	minutesToMs: minutesToMs,
 	extractUUID: extractUUID,
@@ -152,5 +156,6 @@ module.exports = {
 	parseNull: parseNullValues,
 	sort: sortTime,
 	padTime: padTime,
-	getSmallerImage: getSmallerImage
+	getSmallerImage: getSmallerImage,
+	calcDuration : calcDuration
 };

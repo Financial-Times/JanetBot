@@ -10,7 +10,7 @@ It is built on NodeJS and will require a local setup.
 _Please refer to the dev handover notes._
 
 Before you start, ensure you have all the environment variables in a `.env` file, at the root of the project.
-It is recommended to comment out the `janetbot.warn` line in `index.js` (l.18) to avoid spamming the live Slack channel and meddling with the live instance. If Slack messaging is required it should be re-routed to the dev channel.
+It is recommended to comment out the `janetbot.warn` line in `index.js` (l.168) to avoid spamming the live Slack channel and meddling with the live instance. If Slack messaging is required it should be re-routed to the dev channel.
 
 Run `npm install`, if it is the first time you check out the project.
 

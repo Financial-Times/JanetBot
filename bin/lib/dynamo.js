@@ -1,4 +1,5 @@
 const AWS   = require('aws-sdk');
+const utils = require('./utils')
 AWS.config.update({region: process.env.AWS_REGION || 'eu-west-1'});
 
 const Dynamo       = new AWS.DynamoDB();                // for basic table accesses
@@ -67,8 +68,8 @@ function readFromDatabase(item, table){
 	});
 }
 
-async function scanDatabase(options, table){
-	const query = formatQuery(options, table);
+async function scanDatabase(options, table, duration){
+	const query = formatQuery(options, table, duration);
 
 	const results = await scan(query);
 
@@ -158,14 +159,15 @@ function updateItemInDatabase(item, updateExpression, expressionValues, table){
 	});
 }
 
-function formatQuery(item, table) {
+function formatQuery(item, table, duration) {
 	const formattedQuery = {
 		TableName: table
 	}
 
-	const filter = `${Object.entries(item)[0][0]} = :a`;
+	const filter = `${Object.entries(item)[0][0]} = :a AND correctionTime > :b`;
 	const values =  {
-		":a": Object.entries(item)[0][1]
+		":a": Object.entries(item)[0][1],
+		":b": utils.calcDuration(duration)
 	};
 
 	formattedQuery.FilterExpression = filter;
