@@ -163,7 +163,7 @@ function formatQuery(item, table, index = '') {
 	const formattedQuery = {
 		TableName: table,
 		IndexName: index,
-		KeyConditionExpression: `articleUUID = :articleUUID`
+		KeyConditionExpression: `articleUUID = ${Object.entries(item)[0][0]}`
 	}
 
 	const filter = `${Object.entries(item)[0][0]} = :a`;
