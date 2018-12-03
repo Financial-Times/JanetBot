@@ -162,7 +162,8 @@ function updateItemInDatabase(item, updateExpression, expressionValues, table){
 function formatQuery(item, table, index = '') {
 	const formattedQuery = {
 		TableName: table,
-		IndexName: index
+		IndexName: index,
+		KeyConditionExpression: `articleUUID = ${Object.entries(item)[0][1]}`
 	}
 
 	const filter = `${Object.entries(item)[0][0]} = :a`;
