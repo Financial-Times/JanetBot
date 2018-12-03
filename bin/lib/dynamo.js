@@ -15,7 +15,7 @@ function describeTable(table){
 			}, (err, result) => {
 				if(err){
 					reject(err);
-				} else {				
+				} else {
 					resolve(result);
 				}
 			});
@@ -30,7 +30,7 @@ function writeToDatabase(item, table){
 		if(table === undefined || table === null){
 			reject(`'table' argument is ${table}`);
 		} else {
-			
+
 			DynamoClient.put({
 				TableName : table,
 				Item : item
@@ -38,7 +38,7 @@ function writeToDatabase(item, table){
 
 				if(err){
 					reject(err);
-				} else {				
+				} else {
 					resolve(result);
 				}
 			});
@@ -57,7 +57,7 @@ function readFromDatabase(item, table){
 				TableName : table,
 				Key : item
 			}, function(err, data) {
-				
+
 				if (err) {
 					reject(err);
 				} else {
@@ -68,12 +68,12 @@ function readFromDatabase(item, table){
 	});
 }
 
-async function scanDatabase(options, table, duration){
-	const query = formatQuery(options, table, duration);
+async function scanDatabase(options, table) {
+	const query = formatQuery(options, table);
 
-	const results = await scan(query);
+	const results = await query(query);
 
-	return scan(query)
+	return query(query)
 		.then(function(){
 
 			const totalItems = [];
@@ -159,15 +159,14 @@ function updateItemInDatabase(item, updateExpression, expressionValues, table){
 	});
 }
 
-function formatQuery(item, table, duration) {
+function formatQuery(item, table) {
 	const formattedQuery = {
 		TableName: table
 	}
 
-	const filter = `${Object.entries(item)[0][0]} = :a AND correctionTime > :b`;
+	const filter = `${Object.entries(item)[0][0]} = :a`;
 	const values =  {
-		":a": Object.entries(item)[0][1],
-		":b": utils.calcDuration(duration)
+		":a": Object.entries(item)[0][1]
 	};
 
 	formattedQuery.FilterExpression = filter;

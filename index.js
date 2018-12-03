@@ -70,9 +70,9 @@ app.get('/results/:version', basicAuth({
 	}), (req, res) => {
 
 	if(results[req.params.version]) {
-		res.json({'status': 200, 'content': results[req.params.version], 'total': totals[req.params.version], 'date': latestCheck});	
+		res.json({'status': 200, 'content': results[req.params.version], 'total': totals[req.params.version], 'date': latestCheck});
 	} else if(req.params.version === 'all' && results.uk && results.international){
-		res.json({'status': 200, 'content': results, 'total': totals, 'date': latestCheck});	
+		res.json({'status': 200, 'content': results, 'total': totals, 'date': latestCheck});
 	} else {
 		res.json({'status': 404});
 	}
@@ -86,7 +86,7 @@ function updateResults(image) {
 	for(let i = 0; i < editions.length; ++i) {
 		for(let j = 0; j < results[editions[i]].length; ++j) {
 			const img = results[editions[i]][j];
-			
+
 			if(img.formattedURL === image.formattedURL) {
 				results[editions[i]][j].classification = image.classification;
 				results[editions[i]][j].originalResult = image.originalResult;
@@ -158,7 +158,7 @@ async function getContent() {
 			totals[edition]['women'] = 0;
 			totals[edition]['topHalfWomen'] = 0;
 			totals[edition]['men'] = 0;
-			totals[edition]['topHalfMen'] = 0;	
+			totals[edition]['topHalfMen'] = 0;
 			totals[edition]['images'] = imageData.length;
 			results[edition] = await analyseContent(imageData, edition);
 			updateTotals(edition);
@@ -178,7 +178,7 @@ async function getContent() {
 		blockedPoll = true;
 		clearTimeout(pollTimeout);
 	}
-	
+
 }
 
 async function analyseContent(content, editionKey) {
@@ -189,7 +189,7 @@ async function analyseContent(content, editionKey) {
 		if(checkExisting) {
 			Object.assign(content[i], checkExisting);
 		} else {
-			const checkDB = await feedbackStore.scan({formattedURL: content[i].formattedURL}, process.env.AWS_TABLE, process.env.DYNAMO_SCAN_DURATION)
+			const checkDB = await feedbackStore.scan({formattedURL: content[i].formattedURL}, process.env.AWS_TABLE)
 				.then(async function (res) {
 					if(res.Count > 0) {
 						const items = Utils.sort(res.Items, 'correctionTime', 'desc');
@@ -287,5 +287,3 @@ function startPolling () {
 }
 
 startPolling();
-
-

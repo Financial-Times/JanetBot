@@ -8,7 +8,7 @@ function minutesToMs(mn) {
 function extractUUID(link) {
 	if(link !== undefined) {
 		const linkWithoutHTTP = link.apiUrl.split('://')[1];
-		return linkWithoutHTTP.replace('api.ft.com/content/', '').replace('api.ft.com/things/', '');	
+		return linkWithoutHTTP.replace('api.ft.com/content/', '').replace('api.ft.com/things/', '');
 	}
 
 	return undefined;
@@ -28,10 +28,10 @@ function setComparisonBase(base) {
 
 function removeDuplicatesFromSection(section) {
 	const tempDupes = [];
-	
+
 	if(section.length && topStories.length) {
-		for (let i = 0; i < topStories.length; ++i) { 
-	        for (let j = 0;  j < section.length; ++j) { 
+		for (let i = 0; i < topStories.length; ++i) {
+	        for (let j = 0;  j < section.length; ++j) {
 	            if (topStories[i].apiUrl === section[j].apiUrl) {
 	            	tempDupes.push(section[j]);
 	                section.splice(j, 1);
@@ -48,11 +48,11 @@ function removeDuplicatesFromSection(section) {
 
 function setPlaceholderURL(url) {
 	if(!url.startsWith('http://www.ft.com/cms/') && !url.startsWith('https://www.ft.com/video/') && !url.startsWith('http://www.ft.com/fastft/')) {
-		
+
 		if(url.startsWith('https://www.ft.com/content/')) {
 			return url.split('https://www.ft.com')[1]
 		}
-		
+
 		return url;
 	}
 
@@ -74,7 +74,7 @@ async function formatImageUrl(url) {
 }
 
 function getSmallerImage(image, tries = 0) {
-	let newUrl; 
+	let newUrl;
 	if(tries < 1) {
 		newUrl = image.concat('&quality=low');
 	} else {
@@ -131,16 +131,12 @@ function sortTime(arr, prop, dir = 'desc') {
 		    return parseInt(b[prop]) - parseInt(a[prop]);
 		});
 	}
-	
+
 	return arr;
 }
 
 function padTime (time) {
 	return time.toString().padStart(2,'0');
-}
-
-function calcDuration (duration) {
-	return new Date().getTime() - duration
 }
 
 module.exports = {
@@ -156,6 +152,5 @@ module.exports = {
 	parseNull: parseNullValues,
 	sort: sortTime,
 	padTime: padTime,
-	getSmallerImage: getSmallerImage,
-	calcDuration : calcDuration
+	getSmallerImage: getSmallerImage
 };
