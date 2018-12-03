@@ -189,7 +189,7 @@ async function analyseContent(content, editionKey) {
 		if(checkExisting) {
 			Object.assign(content[i], checkExisting);
 		} else {
-			const checkDB = await feedbackStore.scan({formattedURL: content[i].formattedURL}, process.env.AWS_TABLE)
+			const checkDB = await feedbackStore.scan({formattedURL: content[i].formattedURL}, process.env.AWS_TABLE, process.env.AWS_TABLE_INDEX)
 				.then(async function (res) {
 					if(res.Count > 0) {
 						const items = Utils.sort(res.Items, 'correctionTime', 'desc');

@@ -68,8 +68,8 @@ function readFromDatabase(item, table){
 	});
 }
 
-async function scanDatabase(options, table) {
-	const query = formatQuery(options, table);
+async function scanDatabase(options, table, index) {
+	const query = formatQuery(options, table, index);
 
 	const results = await scan(query);
 
@@ -159,9 +159,10 @@ function updateItemInDatabase(item, updateExpression, expressionValues, table){
 	});
 }
 
-function formatQuery(item, table) {
+function formatQuery(item, table, index = '') {
 	const formattedQuery = {
-		TableName: table
+		TableName: table,
+		IndexName: index
 	}
 
 	const filter = `${Object.entries(item)[0][0]} = :a`;
