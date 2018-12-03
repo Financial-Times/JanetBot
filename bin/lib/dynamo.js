@@ -71,9 +71,9 @@ function readFromDatabase(item, table){
 async function scanDatabase(options, table) {
 	const query = formatQuery(options, table);
 
-	const results = await query(query);
+	const results = await scan(query);
 
-	return query(query)
+	return scan(query)
 		.then(function(){
 
 			const totalItems = [];
@@ -100,7 +100,7 @@ async function scan(query){
 			reject(`'TableName' argument is ${query.TableName}`);
 		} else {
 
-			DynamoClient.scan(query, function(err, data){
+			DynamoClient.query(query, function(err, data){
 
 				if(err){
 					reject(err);
