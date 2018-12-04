@@ -70,7 +70,6 @@ async function getImagesFor(list, layout, sectionID, edition) {
 		for(let i = 0; i < indices.length; ++i) {
 			let imageData = await getTeaser(Utils.extractUUID(list[indices[i]]));
 			if(imageData.images && imageData.images.length) {
-				console.log("imageData", imageData);
 				const formattedURL = await Utils.formatUrl(imageData.images[0]);
 
 				const image = {
