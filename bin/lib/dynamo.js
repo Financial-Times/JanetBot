@@ -160,6 +160,7 @@ function updateItemInDatabase(item, updateExpression, expressionValues, table){
 }
 
 function formatQuery(item, table, index = '') {
+	console.log("Object entries", JSON.stringify(Object.entries(item), null, 4));
 	const formattedQuery = {
 		TableName: table,
 		IndexName: index,
@@ -171,6 +172,7 @@ function formatQuery(item, table, index = '') {
 		":a": Object.entries(item)[0][1]
 	};
 
+	console.log("formattedQuery", JSON.stringify(formattedQuery, null, 4));
 	formattedQuery.FilterExpression = filter;
 	formattedQuery.ExpressionAttributeValues = values;
 

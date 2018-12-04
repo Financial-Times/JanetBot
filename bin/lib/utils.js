@@ -29,7 +29,7 @@ function setComparisonBase(base) {
 function removeDuplicatesFromSection(section) {
 	const tempDupes = [];
 
-	if(section.length && topStories.length) {
+	if(section && section.length && topStories && topStories.length) {
 		for (let i = 0; i < topStories.length; ++i) {
 	        for (let j = 0;  j < section.length; ++j) {
 	            if (topStories[i].apiUrl === section[j].apiUrl) {
