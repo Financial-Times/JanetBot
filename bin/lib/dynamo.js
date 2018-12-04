@@ -164,17 +164,17 @@ function formatQuery(item, table, index = '') {
 	const formattedQuery = {
 		TableName: table,
 		IndexName: index,
-		KeyConditionExpression: `articleUUID = ${Object.entries(item)[0][0]}`
+		KeyConditionExpression: `formattedURL = ${Object.entries(item)[0][0]}`
 	}
 
-	const filter = `${Object.entries(item)[0][0]} = :a`;
+	const filter = `${Object.entries(item)[0][1]} = :a`;
 	const values =  {
 		":a": Object.entries(item)[0][1]
 	};
 
-	console.log("formattedQuery", JSON.stringify(formattedQuery, null, 4));
 	formattedQuery.FilterExpression = filter;
 	formattedQuery.ExpressionAttributeValues = values;
+	console.log("formattedQuery", JSON.stringify(formattedQuery, null, 4));
 
 	return formattedQuery;
 }
