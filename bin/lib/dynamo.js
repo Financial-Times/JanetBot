@@ -164,7 +164,7 @@ function formatQuery(item, table, index = '') {
 	const formattedQuery = {
 		TableName: table,
 		IndexName: index,
-		KeyConditionExpression: `formattedURL = ${Object.entries(item)[0][0]}`
+		KeyConditionExpression: `formattedURL = ${Object.entries(item)[0][1]}`
 	}
 
 	const filter = `${Object.entries(item)[0][1]} = :a`;
