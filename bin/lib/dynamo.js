@@ -100,7 +100,7 @@ async function scan(query){
 			reject(`'TableName' argument is ${query.TableName}`);
 		} else {
 
-			DynamoClient.query(query, function(err, data){
+			DynamoClient.scan(query, function(err, data){
 
 				if(err){
 					reject(err);
@@ -164,15 +164,15 @@ function formatQuery(item, table, index = '') {
 	const formattedQuery = {
 		TableName: table,
 		IndexName: index,
-		KeyConditionExpression: `formattedURL = ${Object.entries(item)[0][1]}`
+		KeyConditionExpression: `formattedURL = :a`
 	}
 
-	const filter = `${Object.entries(item)[0][1]} = :a`;
+	// const filter = `${Object.entries(item)[0][1]} = :a`;
 	const values =  {
 		":a": Object.entries(item)[0][1]
 	};
 
-	formattedQuery.FilterExpression = filter;
+	// formattedQuery.FilterExpression = filter;
 	formattedQuery.ExpressionAttributeValues = values;
 	console.log("formattedQuery", JSON.stringify(formattedQuery, null, 4));
 
