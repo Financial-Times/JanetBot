@@ -169,7 +169,7 @@ function formatQuery(item, table, index = '') {
 
 	// const filter = `${Object.entries(item)[0][1]} = :a`;
 	const values =  {
-		":formattedURL": { "S": Object.entries(item)[0][1]}
+		":formattedURL": Object.entries(item)[0][1]
 	};
 
 	// formattedQuery.FilterExpression = filter;
