@@ -25,6 +25,7 @@
     "express-basic-auth": "^1.2.0",
     "node-fetch": "^1.7.3",
     "path": "^0.12.7",
-    "slackbots": "^1.1.0"
+    "slackbots": "^1.1.0",
+    "ws": "^3.3.1"
   }
 }
