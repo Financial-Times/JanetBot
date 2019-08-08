@@ -101,7 +101,7 @@ async function getTeaser(uuid) {
 		return false;
 	}
 
-	return fetch(`http://api.ft.com/enrichedcontent/${uuid}?apiKey=${process.env.FT_API_KEY}`)
+	return fetch(`https://api.ft.com/enrichedcontent/${uuid}?apiKey=${process.env.FT_API_KEY}`)
 			.then(res => res.json())
 			.then(data => {
 				if(data.alternativeImages && data.alternativeImages.promotionalImage) {
@@ -124,7 +124,7 @@ async function getTeaser(uuid) {
 
 async function getAuthor(uuid) {
 	Tracker.splunk(`action=getAuthor::${uuid}`);
-	return fetch(`http://api.ft.com/enrichedcontent/${uuid}?apiKey=${process.env.FT_API_KEY}`)
+	return fetch(`https://api.ft.com/enrichedcontent/${uuid}?apiKey=${process.env.FT_API_KEY}`)
 			.then(res => res.json())
 			.then(data => { return data.annotations })
 			.catch(err => { 
@@ -182,7 +182,7 @@ async function getHeadshotsFor(list, itemCount, layout, sectionID, edition) {
 }
 
 async function getList(listID, isConcept = false) {
-	const url = isConcept?`http://api.ft.com/content?isAnnotatedBy=${listID}&apiKey=${process.env.FT_API_KEY}`:`http://api.ft.com/lists/${listID}?apiKey=${process.env.FT_API_KEY}`;
+	const url = isConcept?`https://api.ft.com/content?isAnnotatedBy=${listID}&apiKey=${process.env.FT_API_KEY}`:`https://api.ft.com/lists/${listID}?apiKey=${process.env.FT_API_KEY}`;
 
 	return fetch(url)
 			.then(res => res.json())
